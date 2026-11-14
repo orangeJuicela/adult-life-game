@@ -1,6 +1,7 @@
 "use strict";
 
-const SAVE_KEY = "adult-life-1-1";
+let SAVE_KEY = "adult-life-1-1";
+let levelId = null;
 
 const CAST = {
   puppy: { name: "小白（我）", alt: "小白", src: "assets/puppy.webp", pill: "pill-me", w: 432, h: 720, scale: 1 },
@@ -62,7 +63,7 @@ function expressionSrc(who, name) {
   return book[name] || book.neutral;
 }
 
-const CARDS = {
+let CARDS = {
   c1: {
     icon: "📏",
     title: "權狀坪數三兄弟",
@@ -80,7 +81,7 @@ const CARDS = {
   }
 };
 
-const ITEMS = [
+let ITEMS = [
   { id: "living", label: "客廳", bin: "main" },
   { id: "bed", label: "臥室", bin: "main" },
   { id: "kitchen", label: "廚房", bin: "main" },
@@ -92,13 +93,13 @@ const ITEMS = [
   { id: "tank", label: "頂樓水箱機房", bin: "public" }
 ];
 
-const BINS = [
+let BINS = [
   { id: "main", label: "🏠 主建物", sub: "門內真正住的空間" },
   { id: "annex", label: "🌿 附屬建物", sub: "自家的，但在門外" },
   { id: "public", label: "🏢 公設", sub: "全棟住戶一起用" }
 ];
 
-const SCRIPT = [
+let SCRIPT = [
   { id: "s1-hello", scene: 0, type: "say", speaker: "fox", cast: ["puppy", "fox"],
     expr: { fox: "smug", puppy: "surprised" },
     text: "歡迎歡迎～這間『==30 坪==、三房兩廳』，超大的喔！" },
@@ -230,20 +231,40 @@ const SCRIPT = [
   { id: "s5-3", scene: 4, type: "say", speaker: "owl", cast: ["puppy", "owl"],
     expr: { owl: "serious", puppy: "worried" },
     text: "第三，**雨遮**要看建照年份，**車位**要分開算單價，買賣前查==實價登錄==。" },
-  { id: "s5-raccoon", scene: 4, type: "say", speaker: "raccoon", cast: ["puppy", "raccoon"],
-    expr: { puppy: "happy" },
-    text: "下一關要不要來我家看看租屋呀？" },
-  { id: "s5-soon", scene: 4, type: "say", speaker: "system", cast: ["puppy", "raccoon"], allBright: true,
-    expr: { puppy: "happy" },
-    text: "第 1-2 關 即將推出" },
-  { id: "s5-end", scene: 4, type: "end", speaker: "raccoon", cast: ["puppy", "raccoon"], allBright: true,
-    expr: { puppy: "happy" } }
+  { id: "s5-tease-owl", scene: 4, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "smile", puppy: "thinking" },
+    text: "下一關，我們來算**公設比**，看看權狀裡真正住得到多少。" },
+  { id: "s5-tease-fox", scene: 4, type: "say", speaker: "fox", cast: ["puppy", "fox"],
+    expr: { fox: "smug", puppy: "surprised" },
+    text: "公設比？那間大樓一坪才多一點，超划算喔！" },
+  { id: "s5-end", scene: 4, type: "end", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "smile", puppy: "happy" } }
 ];
 
-const MAX_XP = SCRIPT.filter((node) => node.type === "choice").length * 20;
+let MAX_XP = SCRIPT.filter((node) => node.type === "choice").length * 20;
 const TITLE_LINE = "這間廣告寫著『30 坪、三房兩廳』。進門之前，我想先搞懂：坪數到底是什麼。";
 
-let S = load();
+const LEVELS = {
+  "1-1": {
+    id: "1-1",
+    saveKey: "adult-life-1-1",
+    shortTitle: "1-1 「30 坪」",
+    sub: "到底有多大？",
+    endKicker: "第 1-1 關完成",
+    endTitle: "「30 坪」到底有多大？",
+    soon: "下一關：1-2 公設比與實際坪數",
+    next: "1-2",
+    nextLabel: "前往 1-2",
+    sortDone: "全部放對了。真正住得到的只有主建物。",
+    cards: CARDS,
+    items: ITEMS,
+    bins: BINS,
+    script: SCRIPT
+  },
+  "1-2": LEVEL_12
+};
+
+let S = fresh();
 let selected = null;
 let sortMsg = "";
 let sortTone = "info";
@@ -326,6 +347,7 @@ function current() {
 }
 
 function viewName() {
+  if (!levelId) return "select";
   if (!S.started) return "title";
   if (S.phase === "hint") return "hint";
   if (S.phase === "reveal") return "reveal";
@@ -333,6 +355,7 @@ function viewName() {
 }
 
 function speechText() {
+  if (!levelId) return "第1章有兩關。你想先搞懂哪一件？";
   if (!S.started) return TITLE_LINE;
   if (S.phase === "reveal") return (current().skip && current().skip.text) || "";
   if (S.phase === "hint") return S.hint;
@@ -415,18 +438,30 @@ function ensureRewards() {
   }
 }
 
+function cardTotal() {
+  return Math.max(Object.keys(CARDS).length, 1);
+}
+
+function sceneTotal() {
+  if (!levelId) return 1;
+  return SCRIPT.reduce((max, node) => Math.max(max, node.scene), 0) + 1;
+}
+
 function renderChrome() {
-  document.getElementById("xp-num").textContent = String(S.xp);
-  document.getElementById("card-count").textContent = S.cards.length + "/3";
-  document.getElementById("card-badge").hidden = !S.cards.some((id) => !S.seen.includes(id));
+  const meta = levelId ? LEVELS[levelId] : null;
+  document.getElementById("ch-title").textContent = meta ? meta.shortTitle : "選關";
+  document.getElementById("ch-sub").textContent = meta ? meta.sub : "第1章";
+  document.getElementById("xp-num").textContent = String(levelId ? S.xp : 0);
+  document.getElementById("card-count").textContent = (levelId ? S.cards.length : 0) + "/" + (levelId ? cardTotal() : 3);
+  document.getElementById("card-badge").hidden = !levelId || !S.cards.some((id) => !S.seen.includes(id));
   const auto = document.getElementById("btn-auto");
   auto.classList.toggle("on", S.auto);
   auto.setAttribute("aria-pressed", S.auto ? "true" : "false");
-  const scene = S.started ? current().scene : 0;
-  const finished = S.started && current().type === "end";
+  const scene = levelId && S.started ? current().scene : 0;
+  const finished = levelId && S.started && current().type === "end";
   const dots = document.getElementById("dots");
   dots.replaceChildren();
-  for (let i = 0; i < 5; i += 1) {
+  for (let i = 0; i < sceneTotal(); i += 1) {
     const dot = el("i", "dot");
     if (finished || i < scene) dot.classList.add("done");
     else if (i === scene) dot.classList.add("now");
@@ -518,10 +553,11 @@ function makeChoices(node, revealed) {
 function makeHouses() {
   const wrap = el("div", "houses");
   wrap.dataset.testid = "houses";
-  [
+  const houses = (current() && current().houses) || [
     { name: "A 屋", deed: "**權狀** ==30 坪==", rows: ["**主建物** ==18==", "**陽台** ==2==", "**公設** ==10=="], tone: "a" },
     { name: "B 屋", deed: "**權狀** ==26 坪==", rows: ["**主建物** ==20==", "**陽台** ==1==", "**公設** ==5=="], tone: "b" }
-  ].forEach((house) => {
+  ];
+  houses.forEach((house) => {
     const card = el("article", "house house-" + house.tone);
     const deed = el("p", "deed");
     fillRich(deed, house.deed);
@@ -585,15 +621,22 @@ function makeSort() {
 
 function makeEnding() {
   const count = starCount();
+  const meta = LEVELS[levelId];
   const box = el("section", "ending");
   box.dataset.testid = "ending";
-  box.append(el("p", "end-kicker", "第 1-1 關完成"), el("h2", "", "「30 坪」到底有多大？"));
+  box.append(el("p", "end-kicker", meta.endKicker), el("h2", "", meta.endTitle));
   const stars = el("div", "stars");
   stars.setAttribute("aria-label", count + " 顆星");
   for (let i = 0; i < 3; i += 1) {
     stars.appendChild(el("span", i < count ? "star on" : "star", i < count ? "★" : "☆"));
   }
-  box.append(stars, el("p", "end-xp", "XP " + S.xp + " / " + MAX_XP), el("p", "end-note", starBlurb(count)), el("p", "soon", "第 1-2 關 即將推出"));
+  box.append(stars, el("p", "end-xp", "XP " + S.xp + " / " + MAX_XP), el("p", "end-note", starBlurb(count)), el("p", "soon", meta.soon));
+  if (meta.next) {
+    const next = goButton(meta.nextLabel, "next-level");
+    next.removeAttribute("data-advance");
+    next.dataset.level = meta.next;
+    box.append(next);
+  }
   const again = goButton("再玩一次", "replay");
   again.classList.add("choice-go");
   again.removeAttribute("data-advance");
@@ -609,6 +652,10 @@ function makeEnding() {
 function buildPanel() {
   const panel = document.getElementById("panel");
   const view = viewName();
+  if (!levelId) {
+    panel.replaceChildren(makeDialogue("puppy"), makeLevelList());
+    return;
+  }
   if (view === "title") {
     panel.replaceChildren(makeDialogue("puppy"), goButton("開始", "start"));
     panel.lastChild.removeAttribute("data-advance");
@@ -642,6 +689,7 @@ function buildPanel() {
     dialogue.appendChild(status);
     parts.push(makeSort());
   }
+  if (view === "say" && node.houses) parts.splice(1, 0, makeHouses());
   panel.replaceChildren(...parts);
 }
 
@@ -695,7 +743,83 @@ function fillSort() {
   if (next) next.hidden = showingAnswer || placedIds.length !== ITEMS.length;
 }
 
+function makeLevelList() {
+  const wrap = el("div", "choices");
+  wrap.dataset.testid = "levels";
+  Object.keys(LEVELS).forEach((id) => {
+    const level = LEVELS[id];
+    const saved = peekSave(level.saveKey);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "choice";
+    btn.dataset.level = id;
+    const icon = el("span", "choice-icon", id === "1-1" ? "1" : "2");
+    const label = el("span", "choice-text", level.shortTitle + " " + level.sub + "　" + progressLabel(saved, level));
+    btn.append(icon, label);
+    wrap.appendChild(btn);
+  });
+  return wrap;
+}
+
+function peekSave(key) {
+  try {
+    return JSON.parse(localStorage.getItem(key) || "null");
+  } catch (err) {
+    return null;
+  }
+}
+
+function progressLabel(saved, level) {
+  if (!saved || !saved.started) return "尚未開始";
+  const max = level.script.filter((node) => node.type === "choice").length * 20;
+  const ratio = (saved.xp || 0) / max;
+  const stars = ratio >= 0.9 ? 3 : ratio >= 0.6 ? 2 : (saved.xp || 0) > 0 ? 1 : 0;
+  return "★".repeat(stars) + "☆".repeat(3 - stars) + "  XP " + (saved.xp || 0);
+}
+
+function enterLevel(id) {
+  const level = LEVELS[id];
+  if (!level) return;
+  if (levelId && S.started) save();
+  levelId = id;
+  SAVE_KEY = level.saveKey;
+  CARDS = level.cards;
+  ITEMS = level.items;
+  BINS = level.bins;
+  SCRIPT = level.script;
+  MAX_XP = SCRIPT.filter((node) => node.type === "choice").length * 20;
+  const saved = load();
+  selected = null;
+  sortMsg = "";
+  sortTone = "info";
+  endingCue = false;
+  lastPoseKey = "";
+  if (saved.started) S = saved;
+  else {
+    S = fresh();
+    S.started = true;
+  }
+  AdultAudio.unlock();
+  save();
+  closeModals();
+  render();
+}
+
+function showSelect() {
+  if (levelId && S.started) save();
+  levelId = null;
+  S = fresh();
+  selected = null;
+  sortMsg = "";
+  sortTone = "info";
+  endingCue = false;
+  lastPoseKey = "";
+  closeModals();
+  render();
+}
+
 function wrongHint(item) {
+  if (item.hint) return item.hint;
   if (item.id === "balcony") return "它是你家的，但==在門外、不算室內==喔。";
   if (item.bin === "public") return "整棟住戶都會用到的空間屬於哪一格？";
   return "這是門內真正住的空間，要放進**主建物**喔。";
@@ -982,7 +1106,7 @@ function onBin(binId) {
   selected = null;
   AdultAudio.sfx("place");
   const left = ITEMS.length - S.placed.length;
-  sortMsg = left === 0 ? "全部放對了。真正住得到的空間，就是主建物這些。" : "放對了。";
+  sortMsg = left === 0 ? (LEVELS[levelId].sortDone || "全部放對了。") : "放對了。";
   sortTone = "ok";
   save();
   fillSort();
@@ -1001,13 +1125,18 @@ function startGame() {
 }
 
 function resetGame() {
+  if (!levelId) return;
   S = fresh();
+  S.started = true;
   selected = null;
   sortMsg = "";
   sortTone = "info";
+  endingCue = false;
+  lastPoseKey = "";
   document.querySelectorAll(".xp-pop").forEach((node) => node.remove());
   localStorage.removeItem(SAVE_KEY);
   closeModals();
+  save();
   render();
 }
 
@@ -1023,7 +1152,7 @@ function openCards() {
   renderChrome();
   const list = document.getElementById("cards-list");
   list.replaceChildren();
-  ["c1", "c2", "c3"].forEach((id) => {
+  Object.keys(CARDS).forEach((id) => {
     const art = el("article", "kcard");
     if (!S.cards.includes(id)) {
       art.classList.add("locked");
@@ -1036,15 +1165,16 @@ function openCards() {
     }
     list.appendChild(art);
   });
-  document.getElementById("cards-lead").textContent = "已收集 " + S.cards.length + " / 3";
+  document.getElementById("cards-lead").textContent = "已收集 " + S.cards.length + " / " + cardTotal();
   closeModals();
   document.getElementById("modal-cards").hidden = false;
 }
 
 function openMenu() {
-  document.getElementById("menu-lead").textContent = S.started
-    ? "第 1-1 關　⭐ XP " + S.xp
-    : "第 1-1 關　還沒開始";
+  const meta = levelId ? LEVELS[levelId] : null;
+  document.getElementById("menu-lead").textContent = meta
+    ? meta.shortTitle + "　⭐ XP " + S.xp
+    : "先選一關";
   document.getElementById("modal-menu").hidden = false;
 }
 
@@ -1053,6 +1183,11 @@ function anyModalOpen() {
 }
 
 function onPanelClick(event) {
+  const levelBtn = event.target.closest("[data-level]");
+  if (levelBtn) {
+    enterLevel(levelBtn.dataset.level);
+    return;
+  }
   const choice = event.target.closest("[data-choice]");
   if (choice) {
     onChoice(Number(choice.dataset.choice), choice);
@@ -1109,6 +1244,7 @@ function bind() {
   document.getElementById("btn-cards").addEventListener("click", openCards);
   document.getElementById("btn-menu").addEventListener("click", openMenu);
   document.getElementById("menu-resume").addEventListener("click", closeModals);
+  document.getElementById("menu-levels").addEventListener("click", showSelect);
   document.getElementById("menu-cards").addEventListener("click", openCards);
   document.getElementById("menu-restart").addEventListener("click", () => {
     document.getElementById("modal-menu").hidden = true;
