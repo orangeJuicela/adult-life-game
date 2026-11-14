@@ -1,42 +1,22 @@
-/* Original music and effects synthesized in the browser with the Web Audio API.
-   No samples or third-party recordings. */
+/* Sound effects are synthesized in this file. Background music is the
+   CC0 recording documented in CREDITS.md (site/assets/bgm.mp3). */
 var AdultAudio = (function () {
   var KEY = "adult-life-audio";
+  var MUSIC_URL = "assets/bgm.mp3";
+  var MUSIC_LEVEL = 0.35;
   var ctx = null;
   var master = null;
   var musicGain = null;
   var sfxGain = null;
+  var musicBuffer = null;
+  var musicLoading = null;
+  var musicSource = null;
+  var fadedIn = false;
   var muted = loadMuted();
   var unlocked = false;
-  var looping = false;
-  var timer = 0;
-  var nextTime = 0;
-  var stepIndex = 0;
   var talking = false;
   var wanted = "story";
   var pendingStars = 0;
-
-  var STORY = {
-    step: 0.48,
-    level: 0.16,
-    melody: [
-      76, 0, 74, 0, 72, 0, 67, 0,
-      69, 0, 67, 0, 64, 0, 67, 0,
-      72, 0, 67, 0, 69, 0, 72, 0,
-      74, 0, 72, 0, 67, 0, 64, 0
-    ],
-    pad: [48, 52, 55]
-  };
-  var ENDING = {
-    step: 0.52,
-    level: 0.28,
-    melody: [
-      72, 0, 76, 0, 79, 0, 84, 0,
-      79, 0, 76, 0, 72, 0, 67, 0
-    ],
-    pad: [60, 64, 67, 71]
-  };
-  var bed = STORY;
 
   function loadMuted() {
     try {
@@ -53,10 +33,6 @@ var AdultAudio = (function () {
     } catch (err) {
       /* private mode */
     }
-  }
-
-  function midi(note) {
-    return 440 * Math.pow(2, (note - 69) / 12);
   }
 
   function envGain(value, time, attack, dur) {
@@ -91,54 +67,60 @@ var AdultAudio = (function () {
   }
 
   function level() {
-    var base = bed.level;
+    if (muted) return 0.0001;
+    var base = MUSIC_LEVEL;
     if (talking && wanted !== "end") base *= 0.55;
-    return muted ? 0.0001 : base;
+    return base;
   }
 
-  function applyLevel() {
+  function applyLevel(fadeIn) {
     if (!musicGain || !ctx) return;
     var now = ctx.currentTime;
+    var target = level();
     musicGain.gain.cancelScheduledValues(now);
-    musicGain.gain.setValueAtTime(Math.max(musicGain.gain.value, 0.0001), now);
-    musicGain.gain.linearRampToValueAtTime(level(), now + 0.25);
-  }
-
-  function tick() {
-    if (!looping || !ctx) return;
-    if (ctx.state === "suspended") {
-      timer = setTimeout(tick, 200);
+    if (fadeIn) {
+      musicGain.gain.setValueAtTime(0.0001, now);
+      musicGain.gain.linearRampToValueAtTime(target, now + 1.2);
+      fadedIn = true;
       return;
     }
-    var horizon = ctx.currentTime + 0.3;
-    if (nextTime < ctx.currentTime) nextTime = ctx.currentTime + 0.05;
-    while (nextTime < horizon) {
-      var note = bed.melody[stepIndex % bed.melody.length];
-      if (note) {
-        tone(midi(note), nextTime, 0.42, "triangle", 0.07, musicGain, 1600);
-        tone(midi(note) * 2, nextTime, 0.18, "sine", 0.012, musicGain, 2400);
-      }
-      if (stepIndex % 8 === 0) {
-        bed.pad.forEach(function (padNote) {
-          tone(midi(padNote), nextTime, bed.step * 7.2, "sine", 0.018, musicGain, 900);
-        });
-      }
-      nextTime += bed.step;
-      stepIndex += 1;
+    musicGain.gain.setValueAtTime(Math.max(musicGain.gain.value, 0.0001), now);
+    musicGain.gain.linearRampToValueAtTime(target, now + 0.25);
+  }
+
+  function loadMusic() {
+    if (musicBuffer) return Promise.resolve(musicBuffer);
+    if (musicLoading) return musicLoading;
+    musicLoading = fetch(MUSIC_URL).then(function (res) {
+      if (!res.ok) throw new Error("bgm");
+      return res.arrayBuffer();
+    }).then(function (raw) {
+      return ctx.decodeAudioData(raw);
+    }).then(function (audio) {
+      musicBuffer = audio;
+      return audio;
+    }).catch(function () {
+      musicLoading = null;
+    });
+    return musicLoading;
+  }
+
+  function startMusic() {
+    if (!ctx || !unlocked || muted || document.hidden) return;
+    if (musicSource) {
+      applyLevel(false);
+      return;
     }
-    timer = setTimeout(tick, 90);
-  }
-
-  function startLoop() {
-    if (looping || !ctx || muted || document.hidden) return;
-    looping = true;
-    nextTime = ctx.currentTime + 0.06;
-    tick();
-  }
-
-  function stopLoop() {
-    looping = false;
-    clearTimeout(timer);
+    loadMusic().then(function () {
+      if (!musicBuffer || musicSource || !unlocked || muted || document.hidden) return;
+      var src = ctx.createBufferSource();
+      src.buffer = musicBuffer;
+      src.loop = true;
+      src.connect(musicGain);
+      applyLevel(!fadedIn);
+      src.start();
+      musicSource = src;
+    }).catch(function () {});
   }
 
   function ensureGraph() {
@@ -147,7 +129,7 @@ var AdultAudio = (function () {
     if (!AC) return false;
     ctx = new AC();
     master = ctx.createGain();
-    master.gain.value = 0.9;
+    master.gain.value = 1;
     master.connect(ctx.destination);
     musicGain = ctx.createGain();
     musicGain.gain.value = 0.0001;
@@ -169,15 +151,13 @@ var AdultAudio = (function () {
 
   function sync(view) {
     wanted = view === "end" ? "end" : "story";
-    bed = wanted === "end" ? ENDING : STORY;
-    if (!unlocked || !ctx) return;
-    applyLevel();
-    if (!muted && !document.hidden) startLoop();
+    if (!unlocked || !ctx || muted || document.hidden) return;
+    startMusic();
   }
 
   function setTalking(next) {
     talking = !!next;
-    applyLevel();
+    applyLevel(false);
   }
 
   function sfx(name) {
@@ -235,9 +215,8 @@ var AdultAudio = (function () {
       sfxGain.gain.cancelScheduledValues(now);
       sfxGain.gain.setValueAtTime(muted ? 0.0001 : 0.85, now);
     }
-    if (muted) stopLoop();
-    applyLevel();
-    if (!muted && unlocked && !document.hidden) startLoop();
+    if (!muted && unlocked && !document.hidden) startMusic();
+    else applyLevel(false);
     paint();
   }
 
@@ -254,16 +233,12 @@ var AdultAudio = (function () {
   document.addEventListener("visibilitychange", function () {
     if (!ctx) return;
     if (document.hidden) {
-      stopLoop();
       ctx.suspend().catch(function () {});
       return;
     }
     if (!unlocked) return;
     ctx.resume().then(function () {
-      if (!muted) {
-        applyLevel();
-        startLoop();
-      }
+      if (!muted) startMusic();
     }).catch(function () {});
   });
 

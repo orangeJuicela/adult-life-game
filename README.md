@@ -40,7 +40,7 @@ cd site && python3 -m http.server 8080
 
 ## 音樂與音效
 
-背景音樂和音效都在瀏覽器裡用 Web Audio API 即時合成（`site/audio.js`），沒有第三方錄音或取樣。這段合成程式隨本專案提供，可自由使用。
+背景音樂是 CC0 的 lo-fi 錄音〈Chill lofi inspired〉（omfgdude 創作，qubodup 做成無縫循環）。出處與授權寫在 [CREDITS.md](CREDITS.md)。音效仍由 Web Audio API 在瀏覽器裡合成（`site/audio.js`）。
 
 第一次點擊（例如「開始」）之後才會出聲。選單裡的 🔊／🔇 會一起關掉音樂和音效，並記在這個瀏覽器的 localStorage。切到別的分頁時音樂會暫停。
 
