@@ -268,9 +268,9 @@ const CHAPTERS = [
   {
     title: "第1章 房地產基本觀念",
     levels: [
-      { id: "1-1" },
-      { id: "1-2" },
-      { id: "1-3", locked: true, title: "1-3 房屋類型與屋齡", note: "即將推出" }
+      { id: "1-1", motif: "pitch" },
+      { id: "1-2", motif: "price" },
+      { id: "1-3", locked: true, motif: "lock", title: "1-3 房屋類型與屋齡", note: "即將推出" }
     ]
   }
 ];
@@ -685,7 +685,7 @@ function buildPanel() {
   const panel = document.getElementById("panel");
   const view = viewName();
   if (!levelId) {
-    panel.replaceChildren(makeDialogue("puppy"), makeCatalog());
+    panel.replaceChildren(makeCatalog());
     return;
   }
   if (view === "title") {
@@ -797,44 +797,176 @@ function levelProgress(level) {
   return { xp: xp, maxXp: maxXp, cards: cards, cardMax: cardMax, stars: stars, done: done, started: started };
 }
 
-function makeCatalog() {
-  const wrap = el("div", "toc");
-  wrap.dataset.testid = "catalog";
+function catalogTotals() {
+  const totals = { stars: 0, starMax: 0, xp: 0, cards: 0, cardMax: 0 };
   CHAPTERS.forEach((chapter) => {
-    wrap.appendChild(el("h2", "toc-chapter", chapter.title));
     chapter.levels.forEach((entry) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "choice toc-level";
-      const name = el("span", "toc-name");
-      const meta = el("span", "toc-meta");
-      if (entry.locked) {
-        btn.classList.add("is-locked");
-        btn.disabled = true;
-        name.textContent = entry.title;
-        meta.appendChild(el("span", "toc-note", entry.note || "即將推出"));
-      } else {
-        const level = LEVELS[entry.id];
-        const progress = levelProgress(level);
-        btn.dataset.level = entry.id;
-        name.textContent = levelTitle(level);
-        if (progress.done) name.appendChild(el("span", "toc-badge", "完成"));
-        const stars = el("span", "toc-stars");
-        stars.setAttribute("aria-label", progress.stars + " 顆星");
-        for (let i = 0; i < 3; i += 1) {
-          stars.appendChild(el("span", i < progress.stars ? "on" : "", i < progress.stars ? "★" : "☆"));
-        }
-        meta.append(
-          stars,
-          el("span", "toc-xp", "XP " + progress.xp + " / " + progress.maxXp),
-          el("span", "toc-cards", "知識卡 " + progress.cards + "/" + progress.cardMax)
-        );
-      }
-      btn.append(name, meta);
-      wrap.appendChild(btn);
+      if (entry.locked || !LEVELS[entry.id]) return;
+      const progress = levelProgress(LEVELS[entry.id]);
+      totals.stars += progress.stars;
+      totals.starMax += 3;
+      totals.xp += progress.xp;
+      totals.cards += progress.cards;
+      totals.cardMax += progress.cardMax;
     });
   });
+  return totals;
+}
+
+function starRow(count, label) {
+  const stars = el("span", "wall-stars");
+  stars.setAttribute("aria-label", label || count + " 顆星");
+  for (let i = 0; i < 3; i += 1) {
+    stars.appendChild(el("span", i < count ? "on" : "", i < count ? "★" : "☆"));
+  }
+  return stars;
+}
+
+function makeArt(motif) {
+  const art = el("div", "wall-art art-" + motif);
+  if (motif === "pitch") {
+    art.append(el("div", "plan"), wallImg("assets/expr/fox_smug.webp", ""));
+  } else if (motif === "price") {
+    art.append(el("span", "coin", "坪"), el("span", "coin coin-b", "萬"), wallImg("assets/expr/owl_smile.webp", ""));
+  } else {
+    const house = el("div", "sil");
+    house.append(el("i", "roof"), el("i", "base"));
+    art.append(house, el("span", "lock", "🔒"));
+  }
+  return art;
+}
+
+function wallImg(src, alt) {
+  const img = document.createElement("img");
+  img.src = src;
+  img.alt = alt;
+  img.draggable = false;
+  return img;
+}
+
+function makeCatalog() {
+  const wrap = el("div", "wall");
+  wrap.dataset.testid = "catalog";
+  const totals = catalogTotals();
+
+  const head = el("header", "wall-head");
+  const brand = el("div", "wall-brand");
+  const cap = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  cap.setAttribute("viewBox", "0 0 24 24");
+  cap.setAttribute("width", "28");
+  cap.setAttribute("height", "28");
+  cap.setAttribute("aria-hidden", "true");
+  cap.innerHTML = '<path fill="#2174c4" d="M12 3 1 9l11 6 9-4.9V17h2V9L12 3z"/><path fill="#2174c4" d="M6.5 13.1v3.1C6.5 18 9 19.5 12 19.5s5.5-1.5 5.5-3.3v-3.1L12 16.2l-5.5-3.1z"/>';
+  const menu = document.createElement("button");
+  menu.type = "button";
+  menu.className = "wall-menu";
+  menu.dataset.openMenu = "1";
+  menu.setAttribute("aria-label", "選單");
+  menu.append(el("span", ""), el("span", ""), el("span", ""));
+  brand.append(cap, el("b", "", "高級大人養成所"), menu);
+
+  const hello = el("div", "wall-hello");
+  const avatar = wallImg("assets/expr/puppy_happy.webp", "小白");
+  avatar.className = "wall-avatar";
+  const greet = el("p", "");
+  greet.textContent = "嗨，我是小白。點一張卡，我們就接著上次的進度看房。";
+  hello.append(avatar, greet);
+
+  const stats = el("div", "wall-stats");
+  stats.append(
+    el("span", "wall-stat", "★ " + totals.stars + "/" + totals.starMax),
+    el("span", "wall-stat", "XP " + totals.xp),
+    el("span", "wall-stat", "知識卡 " + totals.cards + "/" + totals.cardMax)
+  );
+  head.append(brand, hello, stats);
+  wrap.appendChild(head);
+
+  CHAPTERS.forEach((chapter) => {
+    const section = el("section", "wall-chapter");
+    section.appendChild(el("h2", "", chapter.title));
+    const playable = chapter.levels.filter((entry) => !entry.locked && LEVELS[entry.id]);
+    let doneCount = 0;
+    let fill = 0;
+    playable.forEach((entry) => {
+      const progress = levelProgress(LEVELS[entry.id]);
+      if (progress.done) {
+        doneCount += 1;
+        fill += 1;
+      } else if (progress.maxXp) {
+        fill += Math.min(0.99, progress.xp / progress.maxXp);
+      }
+    });
+    const ratio = playable.length ? fill / playable.length : 0;
+    const track = el("div", "wall-chbar");
+    track.setAttribute("aria-hidden", "true");
+    const bar = el("i", "");
+    bar.style.width = Math.round(ratio * 100) + "%";
+    track.appendChild(bar);
+    section.append(track, el("p", "wall-chmeta", doneCount + "/" + playable.length + " 關完成"));
+    const list = el("div", "wall-list");
+    chapter.levels.forEach((entry) => list.appendChild(makeLevelCard(entry)));
+    section.appendChild(list);
+    wrap.appendChild(section);
+  });
   return wrap;
+}
+
+function makeLevelCard(entry) {
+  const card = el("article", "wall-card");
+  const motif = entry.motif || (entry.locked ? "lock" : "pitch");
+  const art = makeArt(motif);
+  const badge = el("span", "wall-num", entry.locked ? entry.title.split(" ")[0] : entry.id);
+  art.appendChild(badge);
+  const body = el("div", "wall-body");
+  if (entry.locked) {
+    card.classList.add("is-locked");
+    const title = el("h3", "wall-title", entry.title);
+    const state = el("p", "wall-state", "🔒 即將推出");
+    const track = el("div", "xpbar");
+    track.appendChild(el("i", ""));
+    body.append(title, starRow(0, "尚未開放"), el("p", "wall-xp", "XP —"), track, el("p", "wall-cards", "知識卡 —"), state);
+    card.append(art, body);
+    return card;
+  }
+  const level = LEVELS[entry.id];
+  const progress = levelProgress(level);
+  const title = el("h3", "wall-title", levelTitle(level));
+  const xpLine = el("p", "wall-xp", "XP " + progress.xp + " / " + progress.maxXp);
+  const track = el("div", "xpbar");
+  const fill = el("i", "");
+  fill.style.width = (progress.maxXp ? Math.round(progress.xp / progress.maxXp * 100) : 0) + "%";
+  track.appendChild(fill);
+  const cards = el("p", "wall-cards", "知識卡 " + progress.cards + "/" + progress.cardMax);
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "wall-go";
+  if (progress.done) {
+    art.appendChild(el("span", "wall-stamp", "完成"));
+    body.append(title, starRow(progress.stars), el("p", "wall-state is-done", "完成"), xpLine, track, cards);
+    btn.classList.add("go-replay");
+    btn.dataset.replayLevel = entry.id;
+    btn.textContent = "再玩一次";
+  } else if (progress.started) {
+    body.append(title, starRow(progress.stars), el("p", "wall-state is-now", "進行中"), xpLine, track, cards);
+    btn.classList.add("go-resume");
+    btn.dataset.level = entry.id;
+    btn.textContent = "繼續";
+  } else {
+    body.append(title, starRow(0), xpLine, track, cards);
+    btn.classList.add("go-start");
+    btn.dataset.level = entry.id;
+    btn.textContent = "開始";
+  }
+  body.appendChild(btn);
+  card.append(art, body);
+  return card;
+}
+
+function replayLevel(id) {
+  const level = LEVELS[id];
+  if (!level) return;
+  localStorage.removeItem(level.saveKey);
+  enterLevel(id);
 }
 
 function peekSave(key) {
@@ -967,7 +1099,8 @@ function render() {
   phone.dataset.node = nodeNow ? nodeNow.id : "title";
   phone.dataset.crowded = nodeNow && (nodeNow.houses || nodeNow.type === "choice" || nodeNow.type === "sort") ? "1" : "0";
   renderChrome();
-  renderCast();
+  if (view === "select") document.getElementById("stage").replaceChildren();
+  else renderCast();
   buildPanel();
   if (view === "sort" || (view === "reveal" && current().type === "sort")) fillSort();
   if (view === "end") {
@@ -1258,6 +1391,15 @@ function anyModalOpen() {
 }
 
 function onPanelClick(event) {
+  if (event.target.closest("[data-open-menu]")) {
+    openMenu();
+    return;
+  }
+  const replayBtn = event.target.closest("[data-replay-level]");
+  if (replayBtn) {
+    replayLevel(replayBtn.dataset.replayLevel);
+    return;
+  }
   const levelBtn = event.target.closest("[data-level]");
   if (levelBtn) {
     enterLevel(levelBtn.dataset.level);
