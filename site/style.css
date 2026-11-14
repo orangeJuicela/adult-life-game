@@ -699,6 +699,90 @@ button:focus-visible {
 
 .ending .choice { margin: 8px 0 0; width: 100%; }
 
+.choice-catalog {
+  background: #ffe3a6;
+  box-shadow: 0 3px 0 #f0cc86;
+  color: #6d4c12;
+  font-size: 17px;
+}
+
+.hud[data-view="select"] .dialogue {
+  min-height: 0;
+  padding-bottom: 8px;
+}
+
+.toc {
+  padding: 0 12px 4px;
+  text-align: left;
+}
+
+.toc-chapter {
+  margin: 8px 4px 6px;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.4;
+  color: #31485c;
+  text-align: left;
+}
+
+.toc-level {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 0;
+  background: #fff;
+  box-shadow: 0 3px 0 #dbe3ea;
+}
+
+.toc-name {
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.45;
+  text-align: left;
+  white-space: normal;
+  overflow: visible;
+  word-break: break-word;
+}
+
+.toc-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.4;
+  color: #7a6556;
+  text-align: left;
+}
+
+.toc-stars { letter-spacing: 1px; color: #ead9b4; }
+.toc-stars .on { color: var(--gold); }
+
+.toc-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #e5f6ec;
+  color: #1c7a45;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.5;
+  vertical-align: 1px;
+}
+
+.toc-level.is-locked {
+  background: #f6f3ee;
+  color: #8d7b6a;
+  box-shadow: 0 3px 0 #e0d4c4;
+  cursor: default;
+}
+
+.toc-level.is-locked .toc-note {
+  font-weight: 900;
+  color: #8a5a10;
+}
+
 .toolbar {
   display: flex;
   align-items: center;

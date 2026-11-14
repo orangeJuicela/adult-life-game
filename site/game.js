@@ -264,6 +264,17 @@ const LEVELS = {
   "1-2": LEVEL_12
 };
 
+const CHAPTERS = [
+  {
+    title: "第1章 房地產基本觀念",
+    levels: [
+      { id: "1-1" },
+      { id: "1-2" },
+      { id: "1-3", locked: true, title: "1-3 房屋類型與屋齡", note: "即將推出" }
+    ]
+  }
+];
+
 let S = fresh();
 let selected = null;
 let sortMsg = "";
@@ -362,7 +373,7 @@ function viewName() {
 }
 
 function speechText() {
-  if (!levelId) return "第1章有兩關。你想先搞懂哪一件？";
+  if (!levelId) return "點下面的關卡，就會從上次的進度接著玩。";
   if (!S.started) return TITLE_LINE;
   if (S.phase === "reveal") return (current().skip && current().skip.text) || "";
   if (S.phase === "hint") return S.hint;
@@ -456,7 +467,7 @@ function sceneTotal() {
 
 function renderChrome() {
   const meta = levelId ? LEVELS[levelId] : null;
-  document.getElementById("ch-title").textContent = meta ? meta.shortTitle : "選關";
+  document.getElementById("ch-title").textContent = meta ? meta.shortTitle : "目錄";
   document.getElementById("ch-sub").textContent = meta ? meta.sub : "第1章";
   document.getElementById("xp-num").textContent = String(levelId ? S.xp : 0);
   document.getElementById("card-count").textContent = (levelId ? S.cards.length : 0) + "/" + (levelId ? cardTotal() : 3);
@@ -468,6 +479,10 @@ function renderChrome() {
   const finished = levelId && S.started && current().type === "end";
   const dots = document.getElementById("dots");
   dots.replaceChildren();
+  if (!levelId) {
+    document.getElementById("hud").dataset.view = viewName();
+    return;
+  }
   for (let i = 0; i < sceneTotal(); i += 1) {
     const dot = el("i", "dot");
     if (finished || i < scene) dot.classList.add("done");
@@ -642,6 +657,12 @@ function makeEnding() {
     stars.appendChild(el("span", i < count ? "star on" : "star", i < count ? "★" : "☆"));
   }
   box.append(stars, el("p", "end-xp", "XP " + S.xp + " / " + MAX_XP), el("p", "end-note", starBlurb(count)), el("p", "soon", meta.soon));
+  const back = goButton("📚 回到目錄", "back-catalog");
+  back.classList.remove("choice-mint");
+  back.classList.add("choice-catalog");
+  back.removeAttribute("data-advance");
+  back.dataset.catalog = "1";
+  box.append(back);
   if (meta.next) {
     const next = goButton(meta.nextLabel, "next-level");
     next.removeAttribute("data-advance");
@@ -664,7 +685,7 @@ function buildPanel() {
   const panel = document.getElementById("panel");
   const view = viewName();
   if (!levelId) {
-    panel.replaceChildren(makeDialogue("puppy"), makeLevelList());
+    panel.replaceChildren(makeDialogue("puppy"), makeCatalog());
     return;
   }
   if (view === "title") {
@@ -754,21 +775,64 @@ function fillSort() {
   if (next) next.hidden = showingAnswer || placedIds.length !== ITEMS.length;
 }
 
-function makeLevelList() {
-  const wrap = el("div", "choices");
-  wrap.dataset.testid = "levels";
-  Object.keys(LEVELS).forEach((id) => {
-    const level = LEVELS[id];
-    const saved = peekSave(level.saveKey);
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "choice";
-    btn.dataset.level = id;
-    const icon = el("span", "choice-icon", id === "1-1" ? "1" : "2");
-    const title = [level.shortTitle, level.sub].filter(Boolean).join(" ");
-    const label = el("span", "choice-text", title + "　" + progressLabel(saved, level));
-    btn.append(icon, label);
-    wrap.appendChild(btn);
+function levelTitle(level) {
+  return [level.shortTitle, level.sub].filter(Boolean).join("");
+}
+
+function levelProgress(level) {
+  const saved = peekSave(level.saveKey);
+  const maxXp = level.script.filter((node) => node.type === "choice").length * 20;
+  const cardMax = Object.keys(level.cards || {}).length;
+  const started = !!(saved && saved.started);
+  const xp = started ? (saved.xp || 0) : 0;
+  const cards = started && Array.isArray(saved.cards) ? saved.cards.filter((id) => level.cards[id]).length : 0;
+  const node = started ? level.script[saved.step] : null;
+  const done = !!(node && node.type === "end");
+  const ratio = maxXp ? xp / maxXp : 0;
+  let stars = 0;
+  if (done) stars = ratio >= 0.9 ? 3 : ratio >= 0.6 ? 2 : 1;
+  else if (ratio >= 0.9) stars = 3;
+  else if (ratio >= 0.6) stars = 2;
+  else if (xp > 0) stars = 1;
+  return { xp: xp, maxXp: maxXp, cards: cards, cardMax: cardMax, stars: stars, done: done, started: started };
+}
+
+function makeCatalog() {
+  const wrap = el("div", "toc");
+  wrap.dataset.testid = "catalog";
+  CHAPTERS.forEach((chapter) => {
+    wrap.appendChild(el("h2", "toc-chapter", chapter.title));
+    chapter.levels.forEach((entry) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "choice toc-level";
+      const name = el("span", "toc-name");
+      const meta = el("span", "toc-meta");
+      if (entry.locked) {
+        btn.classList.add("is-locked");
+        btn.disabled = true;
+        name.textContent = entry.title;
+        meta.appendChild(el("span", "toc-note", entry.note || "即將推出"));
+      } else {
+        const level = LEVELS[entry.id];
+        const progress = levelProgress(level);
+        btn.dataset.level = entry.id;
+        name.textContent = levelTitle(level);
+        if (progress.done) name.appendChild(el("span", "toc-badge", "完成"));
+        const stars = el("span", "toc-stars");
+        stars.setAttribute("aria-label", progress.stars + " 顆星");
+        for (let i = 0; i < 3; i += 1) {
+          stars.appendChild(el("span", i < progress.stars ? "on" : "", i < progress.stars ? "★" : "☆"));
+        }
+        meta.append(
+          stars,
+          el("span", "toc-xp", "XP " + progress.xp + " / " + progress.maxXp),
+          el("span", "toc-cards", "知識卡 " + progress.cards + "/" + progress.cardMax)
+        );
+      }
+      btn.append(name, meta);
+      wrap.appendChild(btn);
+    });
   });
   return wrap;
 }
@@ -784,14 +848,6 @@ function peekSave(key) {
   } catch (err) {
     return null;
   }
-}
-
-function progressLabel(saved, level) {
-  if (!saved || !saved.started) return "尚未開始";
-  const max = level.script.filter((node) => node.type === "choice").length * 20;
-  const ratio = (saved.xp || 0) / max;
-  const stars = ratio >= 0.9 ? 3 : ratio >= 0.6 ? 2 : (saved.xp || 0) > 0 ? 1 : 0;
-  return "★".repeat(stars) + "☆".repeat(3 - stars) + "  XP " + (saved.xp || 0);
 }
 
 function enterLevel(id) {
@@ -1193,7 +1249,7 @@ function openMenu() {
   const meta = levelId ? LEVELS[levelId] : null;
   document.getElementById("menu-lead").textContent = meta
     ? meta.shortTitle + "　⭐ XP " + S.xp
-    : "先選一關";
+    : "目錄";
   document.getElementById("modal-menu").hidden = false;
 }
 
@@ -1228,6 +1284,10 @@ function onPanelClick(event) {
   }
   if (event.target.closest("[data-replay]")) {
     resetGame();
+    return;
+  }
+  if (event.target.closest("[data-catalog]")) {
+    showSelect();
     return;
   }
   if (event.target.closest("[data-open-cards]")) {
