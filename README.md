@@ -37,3 +37,5 @@ cd site && python3 -m http.server 8080
 3. 回到 **Actions**，把失敗的 “Deploy GitHub Pages” 重跑一次
 
 之後每次推上 `main` 都會自動更新 <https://orangejuicela.github.io/adult-life-game/>。
+
+<!-- Pages source: GitHub Actions -->
