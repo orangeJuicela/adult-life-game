@@ -57,7 +57,8 @@ const SCRIPT = [
       { icon: "📏", text: "這 30 坪是**權狀坪數**嗎？裡面**公設**佔多少？", correct: true },
       { icon: "💰", text: "可以算便宜一點嗎？", hint: "價錢之後再談，先搞清楚你買的『==30 坪==』裡面有什麼。你想先問哪一件？" },
       { icon: "🍜", text: "附近有什麼好吃的？", hint: "生活機能也重要，但現在的疑問是『怎麼沒那麼大』。要不要改問**坪數**？" }
-    ] },
+    ],
+    skip: { card: "c1", resume: "s2-sort", text: "正解：先問**權狀坪數**和**公設**。==30 坪==通常含公設，公設也要付錢。這題跳過，不加經驗值。" } },
   { id: "s1-legend", scene: 0, type: "say", speaker: "owl", cast: ["puppy", "owl"],
     text: "問得好。先看顏色：**橘色是名詞**、==藍色是重點數字==、!!紅色是陷阱!!。" },
   { id: "s1-ok1", scene: 0, type: "say", speaker: "owl", cast: ["puppy", "owl"],
@@ -72,7 +73,8 @@ const SCRIPT = [
     text: "第一張知識卡幫你記住：權狀上的坪數，有三兄弟。" },
 
   { id: "s2-sort", scene: 1, type: "sort", speaker: "owl", cast: ["puppy", "owl"],
-    text: "把這些空間放進**主建物**、**附屬建物**或**公設**。" },
+    text: "把這些空間放進**主建物**、**附屬建物**或**公設**。",
+    skip: { resume: "s3-q", text: "正解：客廳、臥室、廚房、浴室是**主建物**；陽台是**附屬建物**；電梯、大廳、樓梯、機房是**公設**。==真正住得到的只有主建物==。" } },
   { id: "s2-wrap", scene: 1, type: "say", speaker: "owl", cast: ["puppy", "owl"],
     text: "==真正住得到的只有主建物==。**公設**越多，同樣坪數的室內就越小。" },
 
@@ -82,7 +84,8 @@ const SCRIPT = [
       { icon: "🏠", text: "A 屋，因為 ==30 坪==比較多", hint: "==30 坪==裡有 10 坪是**公設**，室內**主建物**只有多少？再比一次。" },
       { icon: "🏡", text: "B 屋，因為**主建物** ==20 坪==比 ==18 坪==大", correct: true },
       { icon: "🤝", text: "一樣大", hint: "兩間不一樣大喔。比較看看兩間的『**主建物**』。" }
-    ] },
+    ],
+    skip: { card: "c2", resume: "s4-intro", text: "正解：比**室內**要看**主建物**。B 屋 ==20 坪==，比 A 屋 ==18 坪==大。這題跳過，不加經驗值。" } },
   { id: "s3-ok1", scene: 2, type: "say", speaker: "owl", cast: ["puppy", "owl"],
     text: "對，比室內大小要看**主建物**。B 屋主建物 ==20 坪==，比 A 屋的 ==18 坪==大。" },
   { id: "s3-ok2", scene: 2, type: "say", speaker: "owl", cast: ["puppy", "owl"],
@@ -104,7 +107,8 @@ const SCRIPT = [
       { icon: "💬", text: "這間有登記**雨遮**，雨遮坪數一樣照單價算喔～", correct: true },
       { icon: "💬", text: "**陽台**是**附屬建物**，有登記在權狀上。", hint: "這句是對的。**陽台**是**附屬建物**，有登記的話會寫在權狀上。再找找哪一句在!!算錢!!。" },
       { icon: "💬", text: "**公設**包含大廳和電梯。", hint: "這句是對的。大廳和電梯都算**公設**。再聽一次，哪一句要把**雨遮**!!算進價錢!!？" }
-    ] },
+    ],
+    skip: { resume: "s4-intro2", text: "正解：!!雨遮照單價算!!是陷阱。==107 年 1 月 1 日==後不能再登記。這題跳過，不加經驗值。" } },
   { id: "s4-ex1", scene: 3, type: "say", speaker: "owl", cast: ["puppy", "owl"],
     text: "抓到了。**雨遮**能不能登記、能不能算錢，要看**建造執照**的年份。" },
   { id: "s4-ex2", scene: 3, type: "say", speaker: "owl", cast: ["puppy", "owl"],
@@ -125,7 +129,8 @@ const SCRIPT = [
       { icon: "💬", text: "每坪 60 萬，總共 40 坪，含**車位**喔！", correct: true },
       { icon: "💬", text: "**主建物**有 22 坪。", hint: "**主建物**有幾坪，可以先記下來。可疑的是總價怎麼把**車位**算進去。" },
       { icon: "💬", text: "這棟是 2020 年蓋好的。", hint: "年份本身可以是事實。想想『含**車位**』會不會把每坪單價算糊塗？" }
-    ] },
+    ],
+    skip: { card: "c3", resume: "s5-1", text: "正解：!!含車位!!會把單價算糊。房屋和車位要!!分開報價!!，再查==實價登錄==。這題跳過，不加經驗值。" } },
   { id: "s4-ex4", scene: 3, type: "say", speaker: "owl", cast: ["puppy", "owl"],
     text: "對。**車位**的坪數有時會跟房子!!算在一起!!。" },
   { id: "s4-ex5", scene: 3, type: "say", speaker: "owl", cast: ["puppy", "owl"],
@@ -173,7 +178,8 @@ function fresh() {
     placed: [],
     auto: false,
     phase: "line",
-    hint: ""
+    hint: "",
+    skipped: {}
   };
 }
 
@@ -192,9 +198,16 @@ function load() {
     blank.awarded = data.awarded && typeof data.awarded === "object" ? data.awarded : {};
     blank.placed = Array.isArray(data.placed) ? data.placed.filter((id) => ITEMS.some((item) => item.id === id)) : [];
     blank.auto = !!data.auto;
-    blank.phase = data.phase === "hint" && typeof data.hint === "string" && data.hint ? "hint" : "line";
+    blank.skipped = data.skipped && typeof data.skipped === "object" ? data.skipped : {};
+    if (data.phase === "reveal") blank.phase = "reveal";
+    else if (data.phase === "hint" && typeof data.hint === "string" && data.hint) blank.phase = "hint";
+    else blank.phase = "line";
     blank.hint = blank.phase === "hint" ? data.hint : "";
     if (blank.step < 0 || blank.step >= SCRIPT.length) blank.step = 0;
+    if (blank.phase === "reveal") {
+      const node = SCRIPT[blank.step];
+      if (!node || (node.type !== "choice" && node.type !== "sort") || !node.skip) blank.phase = "line";
+    }
     return blank;
   } catch (err) {
     return fresh();
@@ -213,7 +226,8 @@ function save() {
     placed: S.placed,
     auto: S.auto,
     phase: S.phase,
-    hint: S.hint
+    hint: S.hint,
+    skipped: S.skipped
   }));
 }
 
@@ -224,11 +238,13 @@ function current() {
 function viewName() {
   if (!S.started) return "title";
   if (S.phase === "hint") return "hint";
+  if (S.phase === "reveal") return "reveal";
   return current().type;
 }
 
 function speechText() {
   if (!S.started) return TITLE_LINE;
+  if (S.phase === "reveal") return (current().skip && current().skip.text) || "";
   if (S.phase === "hint") return S.hint;
   const node = current();
   if (node.type === "end") return "";
@@ -242,10 +258,17 @@ function starCount() {
   return 1;
 }
 
+function skippedCount() {
+  return Object.keys(S.skipped).filter((id) => S.skipped[id]).length;
+}
+
 function starBlurb(count) {
-  if (count >= 3) return "問問題、拆坪數、抓陷阱，一次就看穿。小白可以放心再往下看房子了。";
-  if (count === 2) return "大觀念都抓到了。再玩一次，把猶豫的地方問到清楚。";
-  return "沒關係，知識卡都收好了。再走一次，坪數會更清楚。";
+  let line;
+  if (count >= 3) line = "問問題、拆坪數、抓陷阱，一次就看穿。小白可以放心再往下看房子了。";
+  else if (count === 2) line = "大觀念都抓到了。再玩一次，把猶豫的地方問到清楚。";
+  else line = "沒關係，知識卡都收好了。再走一次，坪數會更清楚。";
+  if (skippedCount()) line += "跳過的題沒有算進星星。";
+  return line;
 }
 
 function el(tag, className, text) {
@@ -368,7 +391,7 @@ function makeDialogue(speakerKey) {
   return box;
 }
 
-function makeChoices(node) {
+function makeChoices(node, revealed) {
   const wrap = el("div", "choices");
   wrap.dataset.testid = "choices";
   node.choices.forEach((choice, index) => {
@@ -381,6 +404,13 @@ function makeChoices(node) {
     const label = el("span", "choice-text");
     fillRich(label, choice.text);
     btn.append(icon, label);
+    if (revealed) {
+      btn.disabled = true;
+      if (choice.correct) {
+        btn.classList.add("is-correct");
+        btn.append(el("span", "choice-badge", "正解"));
+      }
+    }
     wrap.appendChild(btn);
   });
   return wrap;
@@ -491,10 +521,18 @@ function buildPanel() {
     panel.replaceChildren(makeEnding());
     return;
   }
-  const speaker = view === "hint" ? "owl" : node.speaker;
+  const speaker = view === "hint" || view === "reveal" ? "owl" : node.speaker;
   const dialogue = makeDialogue(speaker);
   const parts = [dialogue];
-  if (view === "choice") {
+  if (view === "reveal" && node.type === "choice") {
+    if (node.extra === "houses") parts.push(makeHouses());
+    parts.push(makeChoices(node, true));
+  } else if (view === "reveal" && node.type === "sort") {
+    const status = el("p", "sort-status");
+    status.id = "sort-status";
+    dialogue.appendChild(status);
+    parts.push(makeSort());
+  } else if (view === "choice") {
     if (node.extra === "houses") parts.push(makeHouses());
     parts.push(makeChoices(node));
   } else if (view === "card") {
@@ -512,8 +550,10 @@ function fillSort() {
   const tray = document.getElementById("chip-tray");
   if (!tray) return;
   tray.replaceChildren();
+  const showingAnswer = S.phase === "reveal" && current().type === "sort";
+  const placedIds = showingAnswer ? ITEMS.map((item) => item.id) : S.placed;
   ITEMS.forEach((item) => {
-    if (S.placed.includes(item.id)) return;
+    if (placedIds.includes(item.id)) return;
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "chip" + (selected === item.id ? " selected" : "");
@@ -524,7 +564,7 @@ function fillSort() {
   BINS.forEach((bin) => {
     const slots = document.querySelector('[data-slots="' + bin.id + '"]');
     slots.replaceChildren();
-    const mine = ITEMS.filter((item) => item.bin === bin.id && S.placed.includes(item.id));
+    const mine = ITEMS.filter((item) => item.bin === bin.id && placedIds.includes(item.id));
     if (!mine.length) {
       slots.appendChild(el("span", "bin-empty", "點這裡放入"));
       return;
@@ -533,8 +573,11 @@ function fillSort() {
   });
   document.getElementById("bins").classList.toggle("armed", !!selected);
   const status = document.getElementById("sort-status");
-  const left = ITEMS.length - S.placed.length;
-  if (!sortMsg) {
+  const left = ITEMS.length - placedIds.length;
+  if (showingAnswer) {
+    fillRich(status, "下面是正解。點一下繼續。");
+    status.dataset.tone = "ok";
+  } else if (!sortMsg) {
     if (left === 0) {
       fillRich(status, "全部放對了。");
       status.dataset.tone = "ok";
@@ -550,7 +593,7 @@ function fillSort() {
     status.dataset.tone = sortTone || "info";
   }
   const next = document.getElementById("sort-next");
-  if (next) next.hidden = S.placed.length !== ITEMS.length;
+  if (next) next.hidden = showingAnswer || placedIds.length !== ITEMS.length;
 }
 
 function wrongHint(item) {
@@ -567,7 +610,7 @@ function finishLine(token) {
   document.getElementById("phone").dataset.ready = "1";
   const hint = document.getElementById("tap-hint");
   const view = viewName();
-  if (hint) hint.textContent = view === "say" || view === "hint" ? "▼ 點一下繼續" : "";
+  if (hint) hint.textContent = view === "say" || view === "hint" || view === "reveal" ? "▼ 點一下繼續" : "";
   AdultAudio.setTalking(false);
   queueAuto();
 }
@@ -628,7 +671,7 @@ function render() {
   renderChrome();
   renderCast();
   buildPanel();
-  if (view === "sort") fillSort();
+  if (view === "sort" || (view === "reveal" && current().type === "sort")) fillSort();
   if (view === "end") {
     lineReady = true;
     phone.dataset.ready = "1";
@@ -666,8 +709,45 @@ function advance(fromUser) {
   render();
 }
 
+function showReveal() {
+  const node = current();
+  if (!node || !node.skip) return;
+  S.phase = "reveal";
+  S.hint = "";
+  if (node.qid) {
+    S.skipped[node.qid] = true;
+    S.awarded[node.qid] = true;
+  }
+  if (node.skip.card && !S.cards.includes(node.skip.card)) S.cards.push(node.skip.card);
+  AdultAudio.sfx("tap");
+  save();
+  render();
+}
+
+function confirmReveal() {
+  const node = current();
+  const resume = node && node.skip ? SCRIPT.findIndex((item) => item.id === node.skip.resume) : -1;
+  S.phase = "line";
+  S.hint = "";
+  if (resume >= 0) S.step = resume;
+  AdultAudio.sfx("tap");
+  save();
+  render();
+}
+
 function onSkip() {
   const view = viewName();
+  if (view === "reveal") {
+    if (!lineReady) {
+      AdultAudio.sfx("tap");
+      gen += 1;
+      clearTimeout(typeTimer);
+      finishLine(gen);
+      return;
+    }
+    confirmReveal();
+    return;
+  }
   if (view === "title" || view === "end" || view === "sort") return;
   if (!lineReady) {
     AdultAudio.sfx("tap");
@@ -688,14 +768,15 @@ function skipSequence() {
   if (!S.started) return;
   clearTimeout(autoTimer);
   clearTimeout(typeTimer);
-  if (S.phase === "hint") {
-    S.phase = "line";
-    S.hint = "";
-    save();
-    render();
+  if (S.phase === "reveal") {
+    confirmReveal();
     return;
   }
   const node = current();
+  if (S.phase === "hint" || (node && (node.type === "choice" || node.type === "sort"))) {
+    showReveal();
+    return;
+  }
   if (isGate(node)) {
     if (!lineReady) {
       gen += 1;
@@ -740,7 +821,7 @@ function popXP(amount) {
 function onChoice(index, button) {
   if (choiceLock) return;
   const node = current();
-  if (!node || node.type !== "choice" || S.phase === "hint") return;
+  if (!node || node.type !== "choice" || S.phase === "hint" || S.phase === "reveal") return;
   const choice = node.choices[index];
   AdultAudio.sfx("option");
   if (!choice.correct) {
@@ -768,7 +849,7 @@ function onChoice(index, button) {
 }
 
 function onPickItem(id) {
-  if (S.placed.includes(id)) return;
+  if (S.phase === "reveal" || S.placed.includes(id)) return;
   selected = selected === id ? null : id;
   if (selected) AdultAudio.sfx("tap");
   sortMsg = selected ? "再點它該去的格子。" : "";
@@ -777,6 +858,7 @@ function onPickItem(id) {
 }
 
 function onBin(binId) {
+  if (S.phase === "reveal") return;
   if (!selected) {
     sortMsg = "先點上面的一個空間喔。";
     sortTone = "info";

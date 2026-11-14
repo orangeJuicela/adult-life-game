@@ -435,6 +435,22 @@ button:focus-visible {
   transform: translateY(2px);
 }
 
+.choice.is-correct {
+  background: #e5f6ec;
+  box-shadow: 0 0 0 3px #2f9d62;
+}
+
+.choice:disabled { cursor: default; }
+
+.choice:disabled:not(.is-correct) { color: #9a8b7c; }
+
+.choice-badge {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 800;
+  color: #1f7a45;
+}
+
 .sheet .choice { margin-top: 8px; }
 .sheet .choice-go { width: 100%; margin: 8px 0 0; }
 
