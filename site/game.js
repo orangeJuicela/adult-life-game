@@ -14,17 +14,17 @@ const CARDS = {
   c1: {
     icon: "📏",
     title: "權狀坪數三兄弟",
-    body: "主建物（門內真正住的空間）、附屬建物（主要是陽台）、公設（大廳、走廊、電梯、樓梯間、機房等全棟共用，按比例分攤）。"
+    body: "**主建物**（門內真正住的空間）、**附屬建物**（主要是陽台）、**公設**（大廳、走廊、電梯、樓梯間、機房等全棟共用，按比例分攤）。"
   },
   c2: {
     icon: "🔍",
     title: "比大小看主建物",
-    body: "總坪數大不代表住得大；先看主建物坪數，再算公設比。"
+    body: "==總坪數大不代表住得大==；先看**主建物**坪數，再算**公設比**。"
   },
   c3: {
     icon: "⚠️",
     title: "坪數陷阱",
-    body: "雨遮看建照年份（107/1/1 後不登記）；車位要分開算單價；買賣前查實價登錄。"
+    body: "**雨遮**看建照年份（==107/1/1== 後不登記）；**車位**要分開算單價；買賣前查實價登錄。"
   }
 };
 
@@ -48,95 +48,97 @@ const BINS = [
 
 const SCRIPT = [
   { id: "s1-hello", scene: 0, type: "say", speaker: "fox", cast: ["puppy", "fox"],
-    text: "歡迎歡迎～這間『30 坪、三房兩廳』，超大的喔！" },
+    text: "歡迎歡迎～這間『==30 坪==、三房兩廳』，超大的喔！" },
   { id: "s1-think", scene: 0, type: "say", speaker: "puppy", cast: ["puppy"],
     text: "咦…一進門怎麼覺得沒那麼大？" },
   { id: "s1-ask", scene: 0, type: "choice", speaker: "owl", cast: ["puppy", "owl"], qid: "q1",
-    text: "先別急著簽名。你覺得該先問阿狐什麼？",
+    text: "!!先別急著簽名!!。你覺得該先問阿狐什麼？",
     choices: [
-      { icon: "📏", text: "這 30 坪是權狀坪數嗎？裡面公設佔多少？", correct: true },
-      { icon: "💰", text: "可以算便宜一點嗎？", hint: "價錢之後再談，先搞清楚你買的『30 坪』裡面有什麼。你想先問哪一件？" },
-      { icon: "🍜", text: "附近有什麼好吃的？", hint: "生活機能也重要，但現在的疑問是『怎麼沒那麼大』。要不要改問坪數？" }
+      { icon: "📏", text: "這 30 坪是**權狀坪數**嗎？裡面**公設**佔多少？", correct: true },
+      { icon: "💰", text: "可以算便宜一點嗎？", hint: "價錢之後再談，先搞清楚你買的『==30 坪==』裡面有什麼。你想先問哪一件？" },
+      { icon: "🍜", text: "附近有什麼好吃的？", hint: "生活機能也重要，但現在的疑問是『怎麼沒那麼大』。要不要改問**坪數**？" }
     ] },
+  { id: "s1-legend", scene: 0, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+    text: "問得好。先看顏色：**橘色是名詞**、==藍色是重點數字==、!!紅色是陷阱!!。" },
   { id: "s1-ok1", scene: 0, type: "say", speaker: "owl", cast: ["puppy", "owl"],
-    text: "問得好。先搞清楚坪數，才不會被『超大』兩個字帶走。" },
+    text: "先搞清楚**坪數**，才不會被『超大』兩個字帶走。" },
   { id: "s1-ok2", scene: 0, type: "say", speaker: "owl", cast: ["puppy", "owl"],
-    text: "1 坪約 3.3 平方公尺（精確是 3.3058），大約兩張單人床併起來。" },
+    text: "==1 坪 ≈ 3.3058 m²==（約 3.3 平方公尺），大約兩張單人床併起來。" },
   { id: "s1-ok3", scene: 0, type: "say", speaker: "owl", cast: ["puppy", "owl"],
-    text: "廣告的坪數通常是『權狀坪數』，等於主建物 + 附屬建物 + 公設（共有部分）。" },
+    text: "廣告的坪數通常是『**權狀坪數**』，等於**主建物** + **附屬建物** + **公設**（共有部分）。" },
   { id: "s1-ok4", scene: 0, type: "say", speaker: "owl", cast: ["puppy", "owl"],
-    text: "房價常用『權狀坪數 × 每坪單價』來算，所以公設也要付錢。" },
+    text: "房價常用『==權狀坪數 × 每坪單價==』來算，所以**公設**也要付錢。" },
   { id: "s1-card", scene: 0, type: "card", card: "c1", speaker: "owl", cast: ["puppy", "owl"],
     text: "第一張知識卡幫你記住：權狀上的坪數，有三兄弟。" },
 
   { id: "s2-sort", scene: 1, type: "sort", speaker: "owl", cast: ["puppy", "owl"],
-    text: "把這些空間放進正確的格子！" },
+    text: "把這些空間放進**主建物**、**附屬建物**或**公設**。" },
   { id: "s2-wrap", scene: 1, type: "say", speaker: "owl", cast: ["puppy", "owl"],
-    text: "真正住得到的只有主建物。公設越多，同樣坪數的室內就越小。" },
+    text: "==真正住得到的只有主建物==。**公設**越多，同樣坪數的室內就越小。" },
 
   { id: "s3-q", scene: 2, type: "choice", speaker: "owl", cast: ["puppy", "owl"], qid: "q3", extra: "houses",
-    text: "兩間總價一樣，哪一間室內比較大？",
+    text: "兩間總價一樣，哪一間**室內**比較大？",
     choices: [
-      { icon: "🏠", text: "A 屋，因為 30 坪比較多", hint: "30 坪裡有 10 坪是公設，室內主建物只有多少？再比一次。" },
-      { icon: "🏡", text: "B 屋，因為主建物 20 坪比 18 坪大", correct: true },
-      { icon: "🤝", text: "一樣大", hint: "兩間不一樣大喔。比較看看兩間的『主建物』。" }
+      { icon: "🏠", text: "A 屋，因為 ==30 坪==比較多", hint: "==30 坪==裡有 10 坪是**公設**，室內**主建物**只有多少？再比一次。" },
+      { icon: "🏡", text: "B 屋，因為**主建物** ==20 坪==比 ==18 坪==大", correct: true },
+      { icon: "🤝", text: "一樣大", hint: "兩間不一樣大喔。比較看看兩間的『**主建物**』。" }
     ] },
   { id: "s3-ok1", scene: 2, type: "say", speaker: "owl", cast: ["puppy", "owl"],
-    text: "對，比室內大小要看主建物。B 屋主建物 20 坪，比 A 屋的 18 坪大。" },
+    text: "對，比室內大小要看**主建物**。B 屋主建物 ==20 坪==，比 A 屋的 ==18 坪==大。" },
   { id: "s3-ok2", scene: 2, type: "say", speaker: "owl", cast: ["puppy", "owl"],
-    text: "A 屋公設比是 10 ÷ 30 ≈ 33%，B 屋是 5 ÷ 26 ≈ 19%。公設比的算法是：公設 ÷ 權狀總坪數。" },
+    text: "A 屋公設比是 ==10 ÷ 30 ≈ 33%==，B 屋是 ==5 ÷ 26 ≈ 19%==。算法是：==公設 ÷ 權狀總坪數==。" },
   { id: "s3-card", scene: 2, type: "card", card: "c2", speaker: "owl", cast: ["puppy", "owl"],
     text: "總坪數大，不代表住得大。這張卡幫你記得怎麼比。" },
 
   { id: "s4-intro", scene: 3, type: "say", speaker: "owl", cast: ["puppy", "owl"],
-    text: "阿狐還會繼續說。有些是事實，有些是陷阱。先一句一句聽，再點出可疑的那句。" },
+    text: "阿狐還會繼續說。有些是事實，有些是!!陷阱!!。先一句一句聽，再點出可疑的那句。" },
   { id: "s4-a1", scene: 3, type: "say", speaker: "fox", cast: ["puppy", "fox"],
-    text: "這間有登記雨遮，雨遮坪數一樣照單價算喔～" },
+    text: "這間有登記**雨遮**，雨遮坪數一樣照單價算喔～" },
   { id: "s4-a2", scene: 3, type: "say", speaker: "fox", cast: ["puppy", "fox"],
-    text: "陽台是附屬建物，有登記在權狀上。" },
+    text: "**陽台**是**附屬建物**，有登記在權狀上。" },
   { id: "s4-a3", scene: 3, type: "say", speaker: "fox", cast: ["puppy", "fox"],
-    text: "公設包含大廳和電梯。" },
+    text: "**公設**包含大廳和電梯。" },
   { id: "s4-q1", scene: 3, type: "choice", speaker: "owl", cast: ["puppy", "owl"], qid: "trap1",
-    text: "哪一句要特別小心？",
+    text: "哪一句要!!特別小心!!？",
     choices: [
-      { icon: "💬", text: "這間有登記雨遮，雨遮坪數一樣照單價算喔～", correct: true },
-      { icon: "💬", text: "陽台是附屬建物，有登記在權狀上。", hint: "這句是對的。陽台是附屬建物，有登記的話會寫在權狀上。再找找哪一句在算錢。" },
-      { icon: "💬", text: "公設包含大廳和電梯。", hint: "這句是對的。大廳和電梯都算公設。再聽一次，哪一句要把雨遮算進價錢？" }
+      { icon: "💬", text: "這間有登記**雨遮**，雨遮坪數一樣照單價算喔～", correct: true },
+      { icon: "💬", text: "**陽台**是**附屬建物**，有登記在權狀上。", hint: "這句是對的。**陽台**是**附屬建物**，有登記的話會寫在權狀上。再找找哪一句在!!算錢!!。" },
+      { icon: "💬", text: "**公設**包含大廳和電梯。", hint: "這句是對的。大廳和電梯都算**公設**。再聽一次，哪一句要把**雨遮**!!算進價錢!!？" }
     ] },
   { id: "s4-ex1", scene: 3, type: "say", speaker: "owl", cast: ["puppy", "owl"],
-    text: "抓到了。雨遮能不能登記、能不能算錢，要看申請建造執照的年份。" },
+    text: "抓到了。**雨遮**能不能登記、能不能算錢，要看**建造執照**的年份。" },
   { id: "s4-ex2", scene: 3, type: "say", speaker: "owl", cast: ["puppy", "owl"],
-    text: "107 年（2018 年）1 月 1 日以後申請建造執照的新建物，屋簷、雨遮不能再登記。更早申請建照的房子，權狀上可能還有雨遮。" },
+    text: "==107 年（2018 年）1 月 1 日==以後申請建造執照的新建物，屋簷、**雨遮**!!不能再登記!!。更早申請建照的房子，權狀上可能還有雨遮。" },
   { id: "s4-ex3", scene: 3, type: "say", speaker: "owl", cast: ["puppy", "owl"],
-    text: "而從 100 年（2011 年）5 月起，預售屋的雨遮就規定不能計價。看到雨遮要算錢，一定要問清楚、看權狀。" },
+    text: "而從 ==100 年（2011 年）5 月==起，預售屋的**雨遮**就規定!!不能計價!!。看到雨遮要算錢，一定要問清楚、看權狀。" },
   { id: "s4-intro2", scene: 3, type: "say", speaker: "owl", cast: ["puppy", "owl"],
-    text: "還有一個陷阱。再聽三句。" },
+    text: "還有一個!!陷阱!!。再聽三句。" },
   { id: "s4-b1", scene: 3, type: "say", speaker: "fox", cast: ["puppy", "fox"],
-    text: "每坪 60 萬，總共 40 坪，含車位喔！" },
+    text: "每坪 ==60 萬==，總共 ==40 坪==，含**車位**喔！" },
   { id: "s4-b2", scene: 3, type: "say", speaker: "fox", cast: ["puppy", "fox"],
-    text: "主建物有 22 坪。" },
+    text: "**主建物**有 ==22 坪==。" },
   { id: "s4-b3", scene: 3, type: "say", speaker: "fox", cast: ["puppy", "fox"],
-    text: "這棟是 2020 年蓋好的。" },
+    text: "這棟是 ==2020 年==蓋好的。" },
   { id: "s4-q2", scene: 3, type: "choice", speaker: "owl", cast: ["puppy", "owl"], qid: "trap2",
     text: "哪一句可疑？",
     choices: [
-      { icon: "💬", text: "每坪 60 萬，總共 40 坪，含車位喔！", correct: true },
-      { icon: "💬", text: "主建物有 22 坪。", hint: "主建物有幾坪，可以先記下來。可疑的是總價怎麼把車位算進去。" },
-      { icon: "💬", text: "這棟是 2020 年蓋好的。", hint: "年份本身可以是事實。想想『含車位』會不會把每坪單價算糊塗？" }
+      { icon: "💬", text: "每坪 60 萬，總共 40 坪，含**車位**喔！", correct: true },
+      { icon: "💬", text: "**主建物**有 22 坪。", hint: "**主建物**有幾坪，可以先記下來。可疑的是總價怎麼把**車位**算進去。" },
+      { icon: "💬", text: "這棟是 2020 年蓋好的。", hint: "年份本身可以是事實。想想『含**車位**』會不會把每坪單價算糊塗？" }
     ] },
   { id: "s4-ex4", scene: 3, type: "say", speaker: "owl", cast: ["puppy", "owl"],
-    text: "對。車位的坪數有時會跟房子算在一起。" },
+    text: "對。**車位**的坪數有時會跟房子!!算在一起!!。" },
   { id: "s4-ex5", scene: 3, type: "say", speaker: "owl", cast: ["puppy", "owl"],
-    text: "要請房仲把『房屋』和『車位』分開報價，算出房屋每坪真正多少錢。也可以上內政部『實價登錄』，查附近的成交價來比較。" },
+    text: "要請房仲把『房屋』和『**車位**』!!分開報價!!，算出房屋每坪真正多少錢。也可以上內政部『==實價登錄==』，查附近的成交價來比較。" },
   { id: "s4-card", scene: 3, type: "card", card: "c3", speaker: "owl", cast: ["puppy", "owl"],
-    text: "最後一張卡，把雨遮和車位兩個陷阱收好。" },
+    text: "最後一張卡，把**雨遮**和**車位**兩個!!陷阱!!收好。" },
 
   { id: "s5-1", scene: 4, type: "say", speaker: "owl", cast: ["puppy", "owl"],
-    text: "今天記住三件事。第一，權狀坪數是主建物、附屬建物和公設加起來，公設也算在價錢裡。" },
+    text: "今天記住三件事。第一，**權狀坪數**是主建物、附屬建物和**公設**加起來，==公設也算在價錢裡==。" },
   { id: "s5-2", scene: 4, type: "say", speaker: "owl", cast: ["puppy", "owl"],
-    text: "第二，室內大不大要看主建物，再用公設比看共用空間佔多少。" },
+    text: "第二，室內大不大要看**主建物**，再用**公設比**看共用空間佔多少。" },
   { id: "s5-3", scene: 4, type: "say", speaker: "owl", cast: ["puppy", "owl"],
-    text: "第三，雨遮要看建照年份，車位要分開算單價，買賣前查實價登錄。" },
+    text: "第三，**雨遮**要看建照年份，**車位**要分開算單價，買賣前查==實價登錄==。" },
   { id: "s5-raccoon", scene: 4, type: "say", speaker: "raccoon", cast: ["puppy", "raccoon"],
     text: "下一關要不要來我家看看租屋呀？" },
   { id: "s5-soon", scene: 4, type: "say", speaker: "system", cast: ["puppy", "raccoon"], allBright: true,
@@ -253,6 +255,43 @@ function el(tag, className, text) {
   return node;
 }
 
+function parseRich(raw) {
+  const parts = [];
+  const text = raw || "";
+  const pattern = /\*\*([^*]+)\*\*|==([^=]+)==|!!([^!]+)!!/g;
+  let last = 0;
+  let match = pattern.exec(text);
+  while (match) {
+    if (match.index > last) parts.push({ kind: "", text: text.slice(last, match.index) });
+    if (match[1] != null) parts.push({ kind: "term", text: match[1] });
+    else if (match[2] != null) parts.push({ kind: "fact", text: match[2] });
+    else parts.push({ kind: "warn", text: match[3] });
+    last = match.index + match[0].length;
+    match = pattern.exec(text);
+  }
+  if (last < text.length) parts.push({ kind: "", text: text.slice(last) });
+  return parts;
+}
+
+function plainLength(parts) {
+  return parts.reduce((sum, part) => sum + Array.from(part.text).length, 0);
+}
+
+function fillRich(node, raw, count) {
+  const parts = parseRich(raw);
+  let left = count == null ? plainLength(parts) : count;
+  node.replaceChildren();
+  parts.forEach((part) => {
+    if (left <= 0) return;
+    const chars = Array.from(part.text);
+    const take = chars.slice(0, left).join("");
+    left -= Math.min(left, chars.length);
+    if (!take) return;
+    if (!part.kind) node.append(document.createTextNode(take));
+    else node.append(el("span", "mark mark-" + part.kind, take));
+  });
+}
+
 function ensureRewards() {
   if (!S.started) return;
   const node = current();
@@ -339,7 +378,9 @@ function makeChoices(node) {
     btn.dataset.choice = String(index);
     const icon = el("span", "choice-icon", choice.icon);
     icon.setAttribute("aria-hidden", "true");
-    btn.append(icon, el("span", "choice-text", choice.text));
+    const label = el("span", "choice-text");
+    fillRich(label, choice.text);
+    btn.append(icon, label);
     wrap.appendChild(btn);
   });
   return wrap;
@@ -349,13 +390,19 @@ function makeHouses() {
   const wrap = el("div", "houses");
   wrap.dataset.testid = "houses";
   [
-    { name: "A 屋", deed: "權狀 30 坪", rows: ["主建物 18", "陽台 2", "公設 10"], tone: "a" },
-    { name: "B 屋", deed: "權狀 26 坪", rows: ["主建物 20", "陽台 1", "公設 5"], tone: "b" }
+    { name: "A 屋", deed: "**權狀** ==30 坪==", rows: ["**主建物** ==18==", "**陽台** ==2==", "**公設** ==10=="], tone: "a" },
+    { name: "B 屋", deed: "**權狀** ==26 坪==", rows: ["**主建物** ==20==", "**陽台** ==1==", "**公設** ==5=="], tone: "b" }
   ].forEach((house) => {
     const card = el("article", "house house-" + house.tone);
-    card.append(el("h3", "", house.name), el("p", "deed", house.deed));
+    const deed = el("p", "deed");
+    fillRich(deed, house.deed);
+    card.append(el("h3", "", house.name), deed);
     const list = el("ul", "");
-    house.rows.forEach((row) => list.appendChild(el("li", "", row)));
+    house.rows.forEach((row) => {
+      const item = el("li", "");
+      fillRich(item, row);
+      list.appendChild(item);
+    });
     card.appendChild(list);
     wrap.appendChild(card);
   });
@@ -378,7 +425,9 @@ function goButton(label, testid) {
 function makeCard(id) {
   const card = CARDS[id];
   const art = el("article", "kcard preview");
-  art.append(el("div", "kcard-tag", "新的知識卡"), el("h3", "", card.icon + " " + card.title), el("p", "", card.body));
+  const body = el("p", "");
+  fillRich(body, card.body);
+  art.append(el("div", "kcard-tag", "新的知識卡"), el("h3", "", card.icon + " " + card.title), body);
   return art;
 }
 
@@ -487,17 +536,17 @@ function fillSort() {
   const left = ITEMS.length - S.placed.length;
   if (!sortMsg) {
     if (left === 0) {
-      status.textContent = "全部放對了。";
+      fillRich(status, "全部放對了。");
       status.dataset.tone = "ok";
     } else if (left === ITEMS.length) {
-      status.textContent = "先點一個空間，再點下面的格子。";
+      fillRich(status, "先點一個空間，再點下面的格子。");
       status.dataset.tone = "info";
     } else {
-      status.textContent = "還有 " + left + " 個空間。";
+      fillRich(status, "還有 " + left + " 個空間。");
       status.dataset.tone = "info";
     }
   } else {
-    status.textContent = sortMsg;
+    fillRich(status, sortMsg);
     status.dataset.tone = sortTone || "info";
   }
   const next = document.getElementById("sort-next");
@@ -505,15 +554,15 @@ function fillSort() {
 }
 
 function wrongHint(item) {
-  if (item.id === "balcony") return "它是你家的，但在門外、不算室內喔。";
+  if (item.id === "balcony") return "它是你家的，但==在門外、不算室內==喔。";
   if (item.bin === "public") return "整棟住戶都會用到的空間屬於哪一格？";
-  return "這是門內真正住的空間，要放進主建物喔。";
+  return "這是門內真正住的空間，要放進**主建物**喔。";
 }
 
 function finishLine(token) {
   if (token != null && token !== gen) return;
   const textNode = document.getElementById("dialogue-text");
-  if (textNode) textNode.textContent = speechText();
+  if (textNode) fillRich(textNode, speechText());
   lineReady = true;
   document.getElementById("phone").dataset.ready = "1";
   const hint = document.getElementById("tap-hint");
@@ -537,18 +586,19 @@ function startType() {
     finishLine(token);
     return;
   }
-  const chars = Array.from(speechText());
-  textNode.textContent = "";
+  const raw = speechText();
+  const total = plainLength(parseRich(raw));
+  fillRich(textNode, "", 0);
   if (hint) hint.textContent = "";
   let index = 0;
   const tick = () => {
     if (token !== gen) return;
     index += 1;
-    textNode.textContent = chars.slice(0, index).join("");
-    if (index < chars.length) typeTimer = setTimeout(tick, 16);
+    fillRich(textNode, raw, index);
+    if (index < total) typeTimer = setTimeout(tick, 16);
     else finishLine(token);
   };
-  if (!chars.length) finishLine(token);
+  if (!total) finishLine(token);
   else typeTimer = setTimeout(tick, 16);
 }
 
@@ -758,7 +808,9 @@ function openCards() {
       art.append(el("h3", "", "？？？"), el("p", "", "尚未獲得"));
     } else {
       const card = CARDS[id];
-      art.append(el("h3", "", card.icon + " " + card.title), el("p", "", card.body));
+      const body = el("p", "");
+      fillRich(body, card.body);
+      art.append(el("h3", "", card.icon + " " + card.title), body);
     }
     list.appendChild(art);
   });
