@@ -214,22 +214,20 @@ button:focus-visible {
   background: var(--blue);
 }
 
-/* ----- characters: always opaque, feet on the floor line ----- */
+/* ----- characters: one full-screen background, feet on its floor ----- */
 .stage {
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 1;
-  flex: 1 1 200px;
-  min-height: 168px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
+  pointer-events: none;
 }
 
 .stage-inner {
-  position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
-  width: 100%;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--feet, 26%);
+  height: min(420px, calc(100% - var(--feet, 26%) - 64px));
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -311,31 +309,12 @@ button:focus-visible {
   position: absolute;
   z-index: 0;
   left: 50%;
-  bottom: 0;
-  width: 78%;
-  height: 18px;
+  bottom: 1px;
+  width: 62%;
+  height: 12px;
   transform: translateX(-50%);
-  background: radial-gradient(ellipse at center, rgba(48, 28, 12, 0.7) 0%, rgba(48, 28, 12, 0.32) 46%, rgba(48, 28, 12, 0) 74%);
+  background: radial-gradient(ellipse at center, rgba(48, 28, 12, 0.38) 0%, rgba(48, 28, 12, 0.14) 46%, rgba(48, 28, 12, 0) 72%);
   pointer-events: none;
-}
-
-.ground {
-  position: relative;
-  z-index: 2;
-  flex: 0 0 22px;
-  height: 22px;
-  margin-top: -10px;
-  pointer-events: none;
-  background:
-    linear-gradient(to bottom, rgba(74, 46, 22, 0.28), rgba(74, 46, 22, 0) 10px),
-    repeating-linear-gradient(
-      90deg,
-      #f6d7ad 0 22px,
-      #e8c08a 22px 24px,
-      #f3d0a0 24px 46px
-    );
-  border-top: 3px solid #a56b38;
-  box-shadow: inset 0 8px 8px rgba(90, 52, 24, 0.18);
 }
 
 /* ----- lower stack ----- */
@@ -344,12 +323,13 @@ button:focus-visible {
   z-index: 2;
   flex: 0 1 auto;
   min-height: 0;
-  max-height: 66%;
-  margin-top: 0;
+  max-height: 62%;
+  margin-top: auto;
   padding: 6px 0 calc(4px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: transparent;
 }
 
 #panel {
@@ -1090,7 +1070,7 @@ button:focus-visible {
   gap: 8px;
   flex: 0 0 auto;
   padding: 8px 12px 2px;
-  background: linear-gradient(to top, rgba(244, 239, 230, 0.96) 75%, rgba(244, 239, 230, 0));
+  background: linear-gradient(to top, rgba(244, 239, 230, 0.2), rgba(244, 239, 230, 0));
 }
 
 .toolbar-gap { flex: 1 1 8px; }
