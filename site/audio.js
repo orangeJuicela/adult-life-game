@@ -3,7 +3,8 @@
 var AdultAudio = (function () {
   var KEY = "adult-life-audio";
   var MUSIC_URL = "assets/bgm.mp3";
-  var MUSIC_LEVEL = 0.35;
+  var MUSIC_LEVEL = 0.3;
+  var SFX_LEVEL = 1;
   var ctx = null;
   var master = null;
   var musicGain = null;
@@ -135,8 +136,15 @@ var AdultAudio = (function () {
     musicGain.gain.value = 0.0001;
     musicGain.connect(master);
     sfxGain = ctx.createGain();
-    sfxGain.gain.value = muted ? 0.0001 : 0.85;
-    sfxGain.connect(master);
+    sfxGain.gain.value = muted ? 0.0001 : SFX_LEVEL;
+    var sfxLimiter = ctx.createDynamicsCompressor();
+    sfxLimiter.threshold.value = -10;
+    sfxLimiter.knee.value = 8;
+    sfxLimiter.ratio.value = 6;
+    sfxLimiter.attack.value = 0.003;
+    sfxLimiter.release.value = 0.12;
+    sfxGain.connect(sfxLimiter);
+    sfxLimiter.connect(master);
     return true;
   }
 
@@ -164,29 +172,29 @@ var AdultAudio = (function () {
     if (!unlocked || muted || !ctx || document.hidden) return;
     var now = ctx.currentTime;
     if (name === "tap") {
-      tone(740, now, 0.045, "sine", 0.04, sfxGain, 2400);
+      tone(740, now, 0.045, "sine", 0.11, sfxGain, 2400);
     } else if (name === "option") {
-      tone(520, now, 0.05, "sine", 0.045, sfxGain, 2000);
-      tone(780, now + 0.04, 0.06, "sine", 0.04, sfxGain, 2200);
+      tone(520, now, 0.05, "sine", 0.12, sfxGain, 2000);
+      tone(780, now + 0.04, 0.06, "sine", 0.1, sfxGain, 2200);
     } else if (name === "correct") {
-      tone(659.25, now, 0.22, "sine", 0.06, sfxGain, 2800);
-      tone(783.99, now + 0.09, 0.24, "sine", 0.055, sfxGain, 2800);
-      tone(1046.5, now + 0.18, 0.32, "sine", 0.05, sfxGain, 3000);
+      tone(659.25, now, 0.22, "sine", 0.16, sfxGain, 2800);
+      tone(783.99, now + 0.09, 0.24, "sine", 0.14, sfxGain, 2800);
+      tone(1046.5, now + 0.18, 0.32, "sine", 0.13, sfxGain, 3000);
     } else if (name === "wrong") {
-      tone(196, now, 0.16, "sine", 0.045, sfxGain, 420);
-      tone(174, now, 0.18, "triangle", 0.03, sfxGain, 380);
+      tone(196, now, 0.16, "sine", 0.12, sfxGain, 420);
+      tone(174, now, 0.18, "triangle", 0.08, sfxGain, 380);
     } else if (name === "xp") {
-      tone(784, now, 0.1, "sine", 0.05, sfxGain, 2600);
-      tone(988, now + 0.08, 0.12, "sine", 0.045, sfxGain, 2800);
-      tone(1174, now + 0.16, 0.16, "sine", 0.04, sfxGain, 3000);
+      tone(784, now, 0.1, "sine", 0.14, sfxGain, 2600);
+      tone(988, now + 0.08, 0.12, "sine", 0.12, sfxGain, 2800);
+      tone(1174, now + 0.16, 0.16, "sine", 0.11, sfxGain, 3000);
     } else if (name === "card") {
-      tone(523.25, now, 0.18, "triangle", 0.05, sfxGain, 2400);
-      tone(659.25, now + 0.1, 0.2, "sine", 0.045, sfxGain, 2600);
-      tone(783.99, now + 0.2, 0.22, "sine", 0.04, sfxGain, 2800);
-      tone(1046.5, now + 0.3, 0.28, "sine", 0.035, sfxGain, 3000);
+      tone(523.25, now, 0.18, "triangle", 0.14, sfxGain, 2400);
+      tone(659.25, now + 0.1, 0.2, "sine", 0.12, sfxGain, 2600);
+      tone(783.99, now + 0.2, 0.22, "sine", 0.11, sfxGain, 2800);
+      tone(1046.5, now + 0.3, 0.28, "sine", 0.1, sfxGain, 3000);
     } else if (name === "place") {
-      tone(210, now, 0.07, "triangle", 0.06, sfxGain, 700);
-      tone(420, now + 0.01, 0.05, "sine", 0.03, sfxGain, 1200);
+      tone(210, now, 0.07, "triangle", 0.16, sfxGain, 700);
+      tone(420, now + 0.01, 0.05, "sine", 0.08, sfxGain, 1200);
     }
   }
 
@@ -197,8 +205,8 @@ var AdultAudio = (function () {
     var total = Math.max(1, Math.min(count, 3));
     var now = ctx.currentTime + 0.05;
     for (var i = 0; i < total; i += 1) {
-      tone(notes[i], now + i * 0.22, 0.34, "sine", 0.06, sfxGain, 3200);
-      tone(notes[i] * 2, now + i * 0.22, 0.16, "triangle", 0.015, sfxGain, 3600);
+      tone(notes[i], now + i * 0.22, 0.34, "sine", 0.16, sfxGain, 3200);
+      tone(notes[i] * 2, now + i * 0.22, 0.16, "triangle", 0.04, sfxGain, 3600);
     }
   }
 
@@ -213,7 +221,7 @@ var AdultAudio = (function () {
     if (sfxGain && ctx) {
       var now = ctx.currentTime;
       sfxGain.gain.cancelScheduledValues(now);
-      sfxGain.gain.setValueAtTime(muted ? 0.0001 : 0.85, now);
+      sfxGain.gain.setValueAtTime(muted ? 0.0001 : SFX_LEVEL, now);
     }
     if (!muted && unlocked && !document.hidden) startMusic();
     else applyLevel(false);

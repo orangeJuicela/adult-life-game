@@ -680,6 +680,47 @@ function onSkip() {
   advance(true);
 }
 
+function isGate(node) {
+  return !!node && (node.type === "choice" || node.type === "sort" || node.type === "card" || node.type === "end");
+}
+
+function skipSequence() {
+  if (!S.started) return;
+  clearTimeout(autoTimer);
+  clearTimeout(typeTimer);
+  if (S.phase === "hint") {
+    S.phase = "line";
+    S.hint = "";
+    save();
+    render();
+    return;
+  }
+  const node = current();
+  if (isGate(node)) {
+    if (!lineReady) {
+      gen += 1;
+      finishLine(gen);
+    }
+    return;
+  }
+  const fromScene = node.scene;
+  let target = S.step;
+  for (let i = S.step + 1; i < SCRIPT.length; i += 1) {
+    const next = SCRIPT[i];
+    if (isGate(next) || next.scene !== fromScene) {
+      target = i;
+      break;
+    }
+  }
+  if (target === S.step) return;
+  AdultAudio.sfx("tap");
+  S.step = target;
+  S.phase = "line";
+  S.hint = "";
+  save();
+  render();
+}
+
 function award(qid) {
   if (S.awarded[qid]) return 0;
   const gain = S.missed[qid] ? 10 : 20;
@@ -876,7 +917,7 @@ function bind() {
     AdultAudio.toggle();
   });
   AdultAudio.paint();
-  document.getElementById("btn-skip").addEventListener("click", onSkip);
+  document.getElementById("btn-skip").addEventListener("click", skipSequence);
   document.getElementById("btn-auto").addEventListener("click", () => {
     S.auto = !S.auto;
     save();
