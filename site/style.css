@@ -218,17 +218,22 @@ button:focus-visible {
 .stage {
   position: relative;
   z-index: 1;
-  flex: 1 1 auto;
-  min-height: 148px;
+  flex: 1 1 200px;
+  min-height: 168px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 
 .stage-inner {
-  position: absolute;
-  inset: 0 0 0 0;
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding: 0 2px 0;
+  padding: 0 2px;
 }
 
 .char {
@@ -252,12 +257,20 @@ button:focus-visible {
   z-index: 1;
   display: block;
   width: auto;
-  height: auto;
+  height: min(calc(100% * var(--scale, 1)), calc(320px * var(--scale, 1)));
   max-width: 100%;
-  max-height: 100%;
+  max-height: min(calc(100% * var(--scale, 1)), calc(320px * var(--scale, 1)));
+  margin-bottom: -4px;
+  object-fit: contain;
+  object-position: center bottom;
   opacity: 1;
   pointer-events: none;
   user-select: none;
+}
+
+#phone[data-crowded="1"] .char img {
+  height: min(calc(100% * var(--scale, 1)), calc(250px * var(--scale, 1)));
+  max-height: min(calc(100% * var(--scale, 1)), calc(250px * var(--scale, 1)));
 }
 
 .char.dim img {
@@ -299,11 +312,30 @@ button:focus-visible {
   z-index: 0;
   left: 50%;
   bottom: 0;
-  width: 72%;
-  height: 16px;
+  width: 78%;
+  height: 18px;
   transform: translateX(-50%);
-  background: radial-gradient(ellipse at center, rgba(62, 40, 22, 0.55) 0%, rgba(62, 40, 22, 0.22) 42%, rgba(62, 40, 22, 0) 72%);
+  background: radial-gradient(ellipse at center, rgba(48, 28, 12, 0.7) 0%, rgba(48, 28, 12, 0.32) 46%, rgba(48, 28, 12, 0) 74%);
   pointer-events: none;
+}
+
+.ground {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 22px;
+  height: 22px;
+  margin-top: -10px;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(74, 46, 22, 0.28), rgba(74, 46, 22, 0) 10px),
+    repeating-linear-gradient(
+      90deg,
+      #f6d7ad 0 22px,
+      #e8c08a 22px 24px,
+      #f3d0a0 24px 46px
+    );
+  border-top: 3px solid #a56b38;
+  box-shadow: inset 0 8px 8px rgba(90, 52, 24, 0.18);
 }
 
 /* ----- lower stack ----- */
@@ -312,9 +344,18 @@ button:focus-visible {
   z-index: 2;
   flex: 0 1 auto;
   min-height: 0;
-  max-height: 72%;
+  max-height: 66%;
   margin-top: 0;
-  padding: 16px 0 calc(6px + env(safe-area-inset-bottom));
+  padding: 6px 0 calc(4px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-top: 18px;
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -334,7 +375,7 @@ button:focus-visible {
 .hud[data-view="sort"] .dialogue,
 .hud[data-view="card"] .dialogue {
   min-height: 0;
-  padding-bottom: 12px;
+  padding: 18px 14px 8px;
 }
 
 .name {
@@ -399,8 +440,8 @@ button:focus-visible {
 .choices, .bins {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 6px;
+  margin-top: 6px;
 }
 
 .choice {
@@ -409,9 +450,9 @@ button:focus-visible {
   justify-content: flex-start;
   gap: 10px;
   width: 100%;
-  min-height: 52px;
+  min-height: 44px;
   margin: 0;
-  padding: 10px 12px;
+  padding: 7px 10px;
   border: 0;
   border-radius: 18px;
   background: #fff;
@@ -490,21 +531,35 @@ button:focus-visible {
   margin-top: 8px;
 }
 
+.houses:has(> :only-child) {
+  grid-template-columns: 1fr;
+}
+
+.houses:has(> :only-child) ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px 12px;
+}
+
+.houses:has(> :only-child) li {
+  flex: 1 1 42%;
+}
+
 .house {
   background: #fff;
   border-radius: 16px;
-  padding: 8px 10px 10px;
+  padding: 6px 8px 8px;
   box-shadow: 0 4px 12px rgba(90, 70, 54, 0.08);
   text-align: left;
 }
 
-.house h3 { margin: 0; font-size: 16px; font-weight: 900; }
-.house .deed { margin: 2px 0 6px; font-size: 14px; font-weight: 900; }
+.house h3 { margin: 0; font-size: 15px; font-weight: 900; }
+.house .deed { margin: 1px 0 4px; font-size: 13px; font-weight: 900; }
 .house-a { border-top: 4px solid #7eb6e6; }
 .house-b { border-top: 4px solid #7dcb9a; }
 .house-a .deed { color: #1f6aaf; }
 .house-b .deed { color: #1c7a45; }
-.house ul { margin: 0; padding: 0; list-style: none; font-size: 14px; line-height: 1.45; font-weight: 700; }
+.house ul { margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 1.35; font-weight: 700; }
 
 .sort-status {
   margin: 8px 0 0;
@@ -648,7 +703,9 @@ button:focus-visible {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 0 0 auto;
   padding: 8px 12px 2px;
+  background: linear-gradient(to top, rgba(244, 239, 230, 0.96) 75%, rgba(244, 239, 230, 0));
 }
 
 .toolbar-gap { flex: 1 1 8px; }

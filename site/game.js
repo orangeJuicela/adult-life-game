@@ -5,8 +5,8 @@ let levelId = null;
 
 const CAST = {
   puppy: { name: "小白（我）", alt: "小白", src: "assets/puppy.webp", pill: "pill-me", w: 432, h: 720, scale: 1 },
-  fox: { name: "狐狸房仲 阿狐", alt: "狐狸房仲 阿狐", src: "assets/fox.webp", pill: "pill-fox", w: 447, h: 720, scale: 1.08 },
-  owl: { name: "貓頭鷹老師", alt: "貓頭鷹老師", src: "assets/owl.webp", pill: "pill-owl", w: 554, h: 720, scale: 0.86 },
+  fox: { name: "狐狸房仲 阿狐", alt: "狐狸房仲 阿狐", src: "assets/fox.webp", pill: "pill-fox", w: 447, h: 720, scale: 1 },
+  owl: { name: "貓頭鷹老師", alt: "貓頭鷹老師", src: "assets/owl.webp", pill: "pill-owl", w: 554, h: 720, scale: 0.73 },
   raccoon: { name: "浣熊阿姨", alt: "浣熊阿姨", src: "assets/raccoon.webp", pill: "pill-raccoon", w: 515, h: 720, scale: 1 },
   system: { name: "養成所", alt: "", pill: "pill-sys" }
 };
@@ -233,10 +233,10 @@ let SCRIPT = [
     text: "第三，**雨遮**要看建照年份，**車位**要分開算單價，買賣前查==實價登錄==。" },
   { id: "s5-tease-owl", scene: 4, type: "say", speaker: "owl", cast: ["puppy", "owl"],
     expr: { owl: "smile", puppy: "thinking" },
-    text: "下一關，我們來算**公設比**，看看權狀裡真正住得到多少。" },
+    text: "下一關，我們來算**每坪到底多少錢**。權狀單價、室內單價，還有車位，分開看。" },
   { id: "s5-tease-fox", scene: 4, type: "say", speaker: "fox", cast: ["puppy", "fox"],
     expr: { fox: "smug", puppy: "surprised" },
-    text: "公設比？那間大樓一坪才多一點，超划算喔！" },
+    text: "每坪 ==60 萬==？我這張表算得很漂亮喔！" },
   { id: "s5-end", scene: 4, type: "end", speaker: "owl", cast: ["puppy", "owl"],
     expr: { owl: "smile", puppy: "happy" } }
 ];
@@ -252,9 +252,9 @@ const LEVELS = {
     sub: "到底有多大？",
     endKicker: "第 1-1 關完成",
     endTitle: "「30 坪」到底有多大？",
-    soon: "下一關：1-2 公設比與實際坪數",
+    soon: "下一關：1-2 每坪到底多少錢？",
     next: "1-2",
-    nextLabel: "前往 1-2",
+    nextLabel: "前往 1-2 每坪到底多少錢？",
     sortDone: "全部放對了。真正住得到的只有主建物。",
     cards: CARDS,
     items: ITEMS,
@@ -300,6 +300,7 @@ function load() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return blank;
     const data = JSON.parse(raw);
+    if ((data.v || 1) !== saveVersion()) return blank;
     blank.started = !!data.started;
     blank.step = Number.isInteger(data.step) ? data.step : 0;
     blank.xp = Number.isFinite(data.xp) ? Math.max(0, data.xp) : 0;
@@ -325,8 +326,14 @@ function load() {
   }
 }
 
+function saveVersion() {
+  if (!levelId || !LEVELS[levelId]) return 1;
+  return LEVELS[levelId].saveVersion || 1;
+}
+
 function save() {
   localStorage.setItem(SAVE_KEY, JSON.stringify({
+    v: saveVersion(),
     started: S.started,
     step: S.step,
     xp: S.xp,
@@ -394,7 +401,7 @@ function el(tag, className, text) {
 function parseRich(raw) {
   const parts = [];
   const text = raw || "";
-  const pattern = /\*\*([^*]+)\*\*|==([^=]+)==|!!([^!]+)!!/g;
+  const pattern = /\*\*((?:(?!\*\*).)+)\*\*|==((?:(?!==).)+)==|!!((?:(?!!!)[^])+)!!/g;
   let last = 0;
   let match = pattern.exec(text);
   while (match) {
@@ -498,7 +505,9 @@ function renderCast() {
     fig.dataset.expr = expr;
     if (freshLine && speaking) fig.classList.add("just-spoke");
     if (freshLine && (expr === "surprised" || expr === "panic")) fig.classList.add("emote-hot");
-    fig.style.setProperty("--grow", String((meta.w / meta.h) * meta.scale));
+    const widthBoost = who === "fox" ? 1.08 : 1;
+    fig.style.setProperty("--grow", String((meta.w / meta.h) * meta.scale * widthBoost));
+    fig.style.setProperty("--scale", String(meta.scale));
     const img = document.createElement("img");
     img.src = expressionSrc(who, expr);
     img.alt = meta.alt;
@@ -508,7 +517,9 @@ function renderCast() {
     fig.append(img, el("i", "shadow"));
     inner.appendChild(fig);
   });
-  stage.replaceChildren(inner);
+  const ground = el("div", "ground");
+  ground.setAttribute("aria-hidden", "true");
+  stage.replaceChildren(inner, ground);
 }
 
 function makeDialogue(speakerKey) {
@@ -754,7 +765,8 @@ function makeLevelList() {
     btn.className = "choice";
     btn.dataset.level = id;
     const icon = el("span", "choice-icon", id === "1-1" ? "1" : "2");
-    const label = el("span", "choice-text", level.shortTitle + " " + level.sub + "　" + progressLabel(saved, level));
+    const title = [level.shortTitle, level.sub].filter(Boolean).join(" ");
+    const label = el("span", "choice-text", title + "　" + progressLabel(saved, level));
     btn.append(icon, label);
     wrap.appendChild(btn);
   });
@@ -763,7 +775,12 @@ function makeLevelList() {
 
 function peekSave(key) {
   try {
-    return JSON.parse(localStorage.getItem(key) || "null");
+    const data = JSON.parse(localStorage.getItem(key) || "null");
+    if (!data) return null;
+    const level = Object.keys(LEVELS).map((id) => LEVELS[id]).find((item) => item.saveKey === key);
+    const need = level && level.saveVersion ? level.saveVersion : 1;
+    if ((data.v || 1) !== need) return null;
+    return data;
   } catch (err) {
     return null;
   }
@@ -889,8 +906,10 @@ function render() {
   ensureRewards();
   const phone = document.getElementById("phone");
   const view = viewName();
+  const nodeNow = S.started ? current() : null;
   phone.dataset.view = view;
-  phone.dataset.node = S.started ? current().id : "title";
+  phone.dataset.node = nodeNow ? nodeNow.id : "title";
+  phone.dataset.crowded = nodeNow && (nodeNow.houses || nodeNow.type === "choice" || nodeNow.type === "sort") ? "1" : "0";
   renderChrome();
   renderCast();
   buildPanel();
