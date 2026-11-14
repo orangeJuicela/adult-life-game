@@ -4,7 +4,7 @@ const SAVE_KEY = "adult-life-1-1";
 
 const CAST = {
   puppy: { name: "小白（我）", alt: "小白", src: "assets/puppy.webp", pill: "pill-me", w: 432, h: 720, scale: 1 },
-  fox: { name: "狐狸房仲 阿狐", alt: "狐狸房仲 阿狐", src: "assets/fox.webp", pill: "pill-fox", w: 447, h: 720, scale: 1 },
+  fox: { name: "狐狸房仲 阿狐", alt: "狐狸房仲 阿狐", src: "assets/fox.webp", pill: "pill-fox", w: 447, h: 720, scale: 1.08 },
   owl: { name: "貓頭鷹老師", alt: "貓頭鷹老師", src: "assets/owl.webp", pill: "pill-owl", w: 554, h: 720, scale: 0.86 },
   raccoon: { name: "浣熊阿姨", alt: "浣熊阿姨", src: "assets/raccoon.webp", pill: "pill-raccoon", w: 515, h: 720, scale: 1 },
   system: { name: "養成所", alt: "", pill: "pill-sys" }
