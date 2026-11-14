@@ -38,4 +38,10 @@ cd site && python3 -m http.server 8080
 
 之後每次推上 `main` 都會自動更新 <https://orangejuicela.github.io/adult-life-game/>。
 
+## 音樂與音效
+
+背景音樂和音效都在瀏覽器裡用 Web Audio API 即時合成（`site/audio.js`），沒有第三方錄音或取樣。這段合成程式隨本專案提供，可自由使用。
+
+第一次點擊（例如「開始」）之後才會出聲。選單裡的 🔊／🔇 會一起關掉音樂和音效，並記在這個瀏覽器的 localStorage。切到別的分頁時音樂會暫停。
+
 <!-- Pages source: GitHub Actions -->

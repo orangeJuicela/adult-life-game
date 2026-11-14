@@ -157,6 +157,7 @@ let typeTimer = 0;
 let autoTimer = 0;
 let choiceLock = false;
 let choiceToken = 0;
+let endingCue = false;
 
 function fresh() {
   return {
@@ -258,6 +259,7 @@ function ensureRewards() {
   if (node && node.type === "card" && !S.cards.includes(node.card)) {
     S.cards.push(node.card);
     save();
+    AdultAudio.sfx("card");
   }
 }
 
@@ -517,6 +519,7 @@ function finishLine(token) {
   const hint = document.getElementById("tap-hint");
   const view = viewName();
   if (hint) hint.textContent = view === "say" || view === "hint" ? "▼ 點一下繼續" : "";
+  AdultAudio.setTalking(false);
   queueAuto();
 }
 
@@ -526,6 +529,7 @@ function startType() {
   clearTimeout(typeTimer);
   clearTimeout(autoTimer);
   lineReady = false;
+  AdultAudio.setTalking(true);
   document.getElementById("phone").dataset.ready = "0";
   const textNode = document.getElementById("dialogue-text");
   const hint = document.getElementById("tap-hint");
@@ -559,7 +563,7 @@ function queueAuto() {
   const token = gen;
   autoTimer = setTimeout(() => {
     if (token !== gen) return;
-    advance();
+    advance(false);
   }, 1050);
 }
 
@@ -579,15 +583,24 @@ function render() {
     lineReady = true;
     phone.dataset.ready = "1";
     gen += 1;
+    AdultAudio.setTalking(false);
+    AdultAudio.sync("end");
+    if (!endingCue) {
+      endingCue = true;
+      AdultAudio.stars(starCount());
+    }
     return;
   }
+  endingCue = false;
+  AdultAudio.sync(view);
   startType();
 }
 
-function advance() {
+function advance(fromUser) {
   clearTimeout(autoTimer);
   if (!S.started) return;
   if (S.phase === "hint") {
+    if (fromUser) AdultAudio.sfx("tap");
     S.phase = "line";
     S.hint = "";
     save();
@@ -597,6 +610,7 @@ function advance() {
   const node = current();
   if (!node || node.type === "choice" || node.type === "end") return;
   if (node.type === "sort" && S.placed.length < ITEMS.length) return;
+  if (fromUser) AdultAudio.sfx("tap");
   if (S.step < SCRIPT.length - 1) S.step += 1;
   save();
   render();
@@ -606,13 +620,14 @@ function onSkip() {
   const view = viewName();
   if (view === "title" || view === "end" || view === "sort") return;
   if (!lineReady) {
+    AdultAudio.sfx("tap");
     gen += 1;
     clearTimeout(typeTimer);
     finishLine(gen);
     return;
   }
   if (view === "choice") return;
-  advance();
+  advance(true);
 }
 
 function award(qid) {
@@ -624,6 +639,7 @@ function award(qid) {
 }
 
 function popXP(amount) {
+  AdultAudio.sfx("xp");
   document.querySelectorAll(".xp-pop").forEach((node) => node.remove());
   const pop = el("div", "xp-pop", "+" + amount + " XP");
   document.getElementById("lv-pill").appendChild(pop);
@@ -635,7 +651,9 @@ function onChoice(index, button) {
   const node = current();
   if (!node || node.type !== "choice" || S.phase === "hint") return;
   const choice = node.choices[index];
+  AdultAudio.sfx("option");
   if (!choice.correct) {
+    AdultAudio.sfx("wrong");
     choiceLock = true;
     const token = choiceToken;
     button.classList.add("shake");
@@ -650,6 +668,7 @@ function onChoice(index, button) {
     }, 320);
     return;
   }
+  AdultAudio.sfx("correct");
   const gain = award(node.qid);
   S.step += 1;
   save();
@@ -660,6 +679,7 @@ function onChoice(index, button) {
 function onPickItem(id) {
   if (S.placed.includes(id)) return;
   selected = selected === id ? null : id;
+  if (selected) AdultAudio.sfx("tap");
   sortMsg = selected ? "再點它該去的格子。" : "";
   sortTone = "info";
   fillSort();
@@ -674,6 +694,7 @@ function onBin(binId) {
   }
   const item = ITEMS.find((entry) => entry.id === selected);
   if (item.bin !== binId) {
+    AdultAudio.sfx("wrong");
     sortMsg = wrongHint(item);
     sortTone = "bad";
     fillSort();
@@ -687,6 +708,7 @@ function onBin(binId) {
   }
   S.placed.push(item.id);
   selected = null;
+  AdultAudio.sfx("place");
   const left = ITEMS.length - S.placed.length;
   sortMsg = left === 0 ? "全部放對了。真正住得到的空間，就是主建物這些。" : "放對了。";
   sortTone = "ok";
@@ -695,6 +717,7 @@ function onBin(binId) {
 }
 
 function startGame() {
+  AdultAudio.unlock();
   S.started = true;
   S.step = 0;
   S.phase = "line";
@@ -784,14 +807,23 @@ function onPanelClick(event) {
     return;
   }
   if (event.target.closest("[data-advance]")) {
-    advance();
+    advance(true);
     return;
   }
   if (event.target.closest("#dialogue")) onSkip();
 }
 
 function bind() {
+  document.getElementById("phone").addEventListener("pointerdown", function (event) {
+    AdultAudio.unlock();
+    if (event.target.closest("#menu-sound")) return;
+    AdultAudio.sync(viewName());
+  }, true);
   document.getElementById("panel").addEventListener("click", onPanelClick);
+  document.getElementById("menu-sound").addEventListener("click", function () {
+    AdultAudio.toggle();
+  });
+  AdultAudio.paint();
   document.getElementById("btn-skip").addEventListener("click", onSkip);
   document.getElementById("btn-auto").addEventListener("click", () => {
     S.auto = !S.auto;
