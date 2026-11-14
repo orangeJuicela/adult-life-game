@@ -265,6 +265,35 @@ button:focus-visible {
   opacity: 1;
 }
 
+.char.just-spoke img { animation: speak-bounce 0.48s ease; }
+
+.char.emote-hot img { animation: emote-shake 0.42s ease; }
+
+.char.just-spoke.emote-hot img { animation: bounce-shake 0.5s ease; }
+
+@keyframes bounce-shake {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-7px, -4px); }
+  40% { transform: translate(7px, -10px); }
+  60% { transform: translate(-5px, -6px); }
+  80% { transform: translate(4px, -2px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes speak-bounce {
+  0% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes emote-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
 .char .shadow {
   position: absolute;
   z-index: 0;
@@ -718,5 +747,8 @@ button:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .shake, .xp-pop { animation: none; }
+  .shake, .xp-pop,
+  .char.just-spoke img,
+  .char.emote-hot img,
+  .char.just-spoke.emote-hot img { animation: none; }
 }

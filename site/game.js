@@ -10,6 +10,58 @@ const CAST = {
   system: { name: "養成所", alt: "", pill: "pill-sys" }
 };
 
+const EXPR_SRC = {
+  puppy: {
+    neutral: "assets/puppy.webp",
+    happy: "assets/expr/puppy_happy.webp",
+    surprised: "assets/expr/puppy_surprised.webp",
+    worried: "assets/expr/puppy_worried.webp",
+    thinking: "assets/expr/puppy_thinking.webp"
+  },
+  fox: {
+    neutral: "assets/fox.webp",
+    smug: "assets/expr/fox_smug.webp",
+    guilty: "assets/expr/fox_guilty.webp",
+    panic: "assets/expr/fox_panic.webp"
+  },
+  owl: {
+    neutral: "assets/owl.webp",
+    smile: "assets/expr/owl_smile.webp",
+    serious: "assets/expr/owl_serious.webp",
+    praise: "assets/expr/owl_praise.webp"
+  },
+  raccoon: { neutral: "assets/raccoon.webp" }
+};
+
+function preloadExpressions() {
+  Object.keys(EXPR_SRC).forEach((who) => {
+    Object.keys(EXPR_SRC[who]).forEach((name) => {
+      const img = new Image();
+      img.src = EXPR_SRC[who][name];
+    });
+  });
+}
+
+function expressionName(who, node) {
+  if (!S.started) return who === "puppy" ? "happy" : "neutral";
+  if (S.phase === "hint") {
+    if (who === "puppy") return "worried";
+    if (who === "owl") return "serious";
+  }
+  if (S.phase === "reveal") {
+    if (who === "puppy") return node && node.type === "sort" ? "thinking" : "worried";
+    if (who === "owl") return "serious";
+    if (who === "fox") return "panic";
+  }
+  const chosen = node && node.expr && node.expr[who];
+  return chosen || "neutral";
+}
+
+function expressionSrc(who, name) {
+  const book = EXPR_SRC[who] || {};
+  return book[name] || book.neutral;
+}
+
 const CARDS = {
   c1: {
     icon: "📏",
@@ -48,10 +100,13 @@ const BINS = [
 
 const SCRIPT = [
   { id: "s1-hello", scene: 0, type: "say", speaker: "fox", cast: ["puppy", "fox"],
+    expr: { fox: "smug", puppy: "surprised" },
     text: "歡迎歡迎～這間『==30 坪==、三房兩廳』，超大的喔！" },
   { id: "s1-think", scene: 0, type: "say", speaker: "puppy", cast: ["puppy"],
+    expr: { puppy: "thinking" },
     text: "咦…一進門怎麼覺得沒那麼大？" },
   { id: "s1-ask", scene: 0, type: "choice", speaker: "owl", cast: ["puppy", "owl"], qid: "q1",
+    expr: { owl: "smile", puppy: "thinking" },
     text: "!!先別急著簽名!!。你覺得該先問阿狐什麼？",
     choices: [
       { icon: "📏", text: "這 30 坪是**權狀坪數**嗎？裡面**公設**佔多少？", correct: true },
@@ -60,25 +115,34 @@ const SCRIPT = [
     ],
     skip: { card: "c1", resume: "s2-sort", text: "正解：先問**權狀坪數**和**公設**。==30 坪==通常含公設，公設也要付錢。這題跳過，不加經驗值。" } },
   { id: "s1-legend", scene: 0, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "smile", puppy: "thinking" },
     text: "問得好。先看顏色：**橘色是名詞**、==藍色是重點數字==、!!紅色是陷阱!!。" },
   { id: "s1-ok1", scene: 0, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "praise", puppy: "happy" },
     text: "先搞清楚**坪數**，才不會被『超大』兩個字帶走。" },
   { id: "s1-ok2", scene: 0, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "smile", puppy: "surprised" },
     text: "==1 坪 ≈ 3.3058 m²==（約 3.3 平方公尺），大約兩張單人床併起來。" },
   { id: "s1-ok3", scene: 0, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "smile", puppy: "thinking" },
     text: "廣告的坪數通常是『**權狀坪數**』，等於**主建物** + **附屬建物** + **公設**（共有部分）。" },
   { id: "s1-ok4", scene: 0, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "serious", puppy: "worried" },
     text: "房價常用『==權狀坪數 × 每坪單價==』來算，所以**公設**也要付錢。" },
   { id: "s1-card", scene: 0, type: "card", card: "c1", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "praise", puppy: "happy" },
     text: "第一張知識卡幫你記住：權狀上的坪數，有三兄弟。" },
 
   { id: "s2-sort", scene: 1, type: "sort", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "smile", puppy: "thinking" },
     text: "把這些空間放進**主建物**、**附屬建物**或**公設**。",
     skip: { resume: "s3-q", text: "正解：客廳、臥室、廚房、浴室是**主建物**；陽台是**附屬建物**；電梯、大廳、樓梯、機房是**公設**。==真正住得到的只有主建物==。" } },
   { id: "s2-wrap", scene: 1, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "serious", puppy: "thinking" },
     text: "==真正住得到的只有主建物==。**公設**越多，同樣坪數的室內就越小。" },
 
   { id: "s3-q", scene: 2, type: "choice", speaker: "owl", cast: ["puppy", "owl"], qid: "q3", extra: "houses",
+    expr: { owl: "smile", puppy: "thinking" },
     text: "兩間總價一樣，哪一間**室內**比較大？",
     choices: [
       { icon: "🏠", text: "A 屋，因為 ==30 坪==比較多", hint: "==30 坪==裡有 10 坪是**公設**，室內**主建物**只有多少？再比一次。" },
@@ -87,21 +151,29 @@ const SCRIPT = [
     ],
     skip: { card: "c2", resume: "s4-intro", text: "正解：比**室內**要看**主建物**。B 屋 ==20 坪==，比 A 屋 ==18 坪==大。這題跳過，不加經驗值。" } },
   { id: "s3-ok1", scene: 2, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "praise", puppy: "happy" },
     text: "對，比室內大小要看**主建物**。B 屋主建物 ==20 坪==，比 A 屋的 ==18 坪==大。" },
   { id: "s3-ok2", scene: 2, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "smile", puppy: "surprised" },
     text: "A 屋公設比是 ==10 ÷ 30 ≈ 33%==，B 屋是 ==5 ÷ 26 ≈ 19%==。算法是：==公設 ÷ 權狀總坪數==。" },
   { id: "s3-card", scene: 2, type: "card", card: "c2", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "praise", puppy: "happy" },
     text: "總坪數大，不代表住得大。這張卡幫你記得怎麼比。" },
 
   { id: "s4-intro", scene: 3, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "serious", puppy: "worried" },
     text: "阿狐還會繼續說。有些是事實，有些是!!陷阱!!。先一句一句聽，再點出可疑的那句。" },
   { id: "s4-a1", scene: 3, type: "say", speaker: "fox", cast: ["puppy", "fox"],
+    expr: { fox: "smug", puppy: "worried" },
     text: "這間有登記**雨遮**，雨遮坪數一樣照單價算喔～" },
   { id: "s4-a2", scene: 3, type: "say", speaker: "fox", cast: ["puppy", "fox"],
+    expr: { fox: "guilty", puppy: "thinking" },
     text: "**陽台**是**附屬建物**，有登記在權狀上。" },
   { id: "s4-a3", scene: 3, type: "say", speaker: "fox", cast: ["puppy", "fox"],
+    expr: { fox: "guilty", puppy: "thinking" },
     text: "**公設**包含大廳和電梯。" },
   { id: "s4-q1", scene: 3, type: "choice", speaker: "owl", cast: ["puppy", "owl"], qid: "trap1",
+    expr: { owl: "serious", puppy: "thinking" },
     text: "哪一句要!!特別小心!!？",
     choices: [
       { icon: "💬", text: "這間有登記**雨遮**，雨遮坪數一樣照單價算喔～", correct: true },
@@ -110,20 +182,28 @@ const SCRIPT = [
     ],
     skip: { resume: "s4-intro2", text: "正解：!!雨遮照單價算!!是陷阱。==107 年 1 月 1 日==後不能再登記。這題跳過，不加經驗值。" } },
   { id: "s4-ex1", scene: 3, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "praise", puppy: "happy" },
     text: "抓到了。**雨遮**能不能登記、能不能算錢，要看**建造執照**的年份。" },
   { id: "s4-ex2", scene: 3, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "serious", puppy: "surprised" },
     text: "==107 年（2018 年）1 月 1 日==以後申請建造執照的新建物，屋簷、**雨遮**!!不能再登記!!。更早申請建照的房子，權狀上可能還有雨遮。" },
   { id: "s4-ex3", scene: 3, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "serious", puppy: "worried" },
     text: "而從 ==100 年（2011 年）5 月==起，預售屋的**雨遮**就規定!!不能計價!!。看到雨遮要算錢，一定要問清楚、看權狀。" },
   { id: "s4-intro2", scene: 3, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "serious", puppy: "worried" },
     text: "還有一個!!陷阱!!。再聽三句。" },
   { id: "s4-b1", scene: 3, type: "say", speaker: "fox", cast: ["puppy", "fox"],
+    expr: { fox: "smug", puppy: "surprised" },
     text: "每坪 ==60 萬==，總共 ==40 坪==，含**車位**喔！" },
   { id: "s4-b2", scene: 3, type: "say", speaker: "fox", cast: ["puppy", "fox"],
+    expr: { fox: "guilty", puppy: "thinking" },
     text: "**主建物**有 ==22 坪==。" },
   { id: "s4-b3", scene: 3, type: "say", speaker: "fox", cast: ["puppy", "fox"],
+    expr: { fox: "panic", puppy: "surprised" },
     text: "這棟是 ==2020 年==蓋好的。" },
   { id: "s4-q2", scene: 3, type: "choice", speaker: "owl", cast: ["puppy", "owl"], qid: "trap2",
+    expr: { owl: "serious", puppy: "thinking" },
     text: "哪一句可疑？",
     choices: [
       { icon: "💬", text: "每坪 60 萬，總共 40 坪，含**車位**喔！", correct: true },
@@ -132,23 +212,32 @@ const SCRIPT = [
     ],
     skip: { card: "c3", resume: "s5-1", text: "正解：!!含車位!!會把單價算糊。房屋和車位要!!分開報價!!，再查==實價登錄==。這題跳過，不加經驗值。" } },
   { id: "s4-ex4", scene: 3, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "praise", puppy: "happy" },
     text: "對。**車位**的坪數有時會跟房子!!算在一起!!。" },
   { id: "s4-ex5", scene: 3, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "serious", puppy: "thinking" },
     text: "要請房仲把『房屋』和『**車位**』!!分開報價!!，算出房屋每坪真正多少錢。也可以上內政部『==實價登錄==』，查附近的成交價來比較。" },
   { id: "s4-card", scene: 3, type: "card", card: "c3", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "praise", puppy: "happy" },
     text: "最後一張卡，把**雨遮**和**車位**兩個!!陷阱!!收好。" },
 
   { id: "s5-1", scene: 4, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "smile", puppy: "thinking" },
     text: "今天記住三件事。第一，**權狀坪數**是主建物、附屬建物和**公設**加起來，==公設也算在價錢裡==。" },
   { id: "s5-2", scene: 4, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "smile", puppy: "thinking" },
     text: "第二，室內大不大要看**主建物**，再用**公設比**看共用空間佔多少。" },
   { id: "s5-3", scene: 4, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+    expr: { owl: "serious", puppy: "worried" },
     text: "第三，**雨遮**要看建照年份，**車位**要分開算單價，買賣前查==實價登錄==。" },
   { id: "s5-raccoon", scene: 4, type: "say", speaker: "raccoon", cast: ["puppy", "raccoon"],
+    expr: { puppy: "happy" },
     text: "下一關要不要來我家看看租屋呀？" },
   { id: "s5-soon", scene: 4, type: "say", speaker: "system", cast: ["puppy", "raccoon"], allBright: true,
+    expr: { puppy: "happy" },
     text: "第 1-2 關 即將推出" },
-  { id: "s5-end", scene: 4, type: "end", speaker: "raccoon", cast: ["puppy", "raccoon"], allBright: true }
+  { id: "s5-end", scene: 4, type: "end", speaker: "raccoon", cast: ["puppy", "raccoon"], allBright: true,
+    expr: { puppy: "happy" } }
 ];
 
 const MAX_XP = SCRIPT.filter((node) => node.type === "choice").length * 20;
@@ -165,6 +254,7 @@ let autoTimer = 0;
 let choiceLock = false;
 let choiceToken = 0;
 let endingCue = false;
+let lastPoseKey = "";
 
 function fresh() {
   return {
@@ -349,24 +439,33 @@ function renderCast() {
   const stage = document.getElementById("stage");
   let cast;
   let speaker;
+  let node = null;
   let allBright = false;
   if (!S.started) {
     cast = ["puppy"];
     speaker = "puppy";
   } else {
-    const node = current();
+    node = current();
     cast = node.cast;
-    speaker = S.phase === "hint" ? "owl" : node.speaker;
-    allBright = !!node.allBright && S.phase !== "hint";
+    speaker = S.phase === "hint" || S.phase === "reveal" ? "owl" : node.speaker;
+    allBright = !!node.allBright && S.phase !== "hint" && S.phase !== "reveal";
   }
+  const poseKey = S.started ? S.step + "|" + S.phase : "title";
+  const freshLine = poseKey !== lastPoseKey;
+  lastPoseKey = poseKey;
   const inner = el("div", "stage-inner " + (cast.length === 1 ? "solo" : "duo"));
   cast.forEach((who) => {
     const meta = CAST[who];
+    const expr = expressionName(who, node);
     const speaking = allBright || cast.length === 1 || who === speaker;
     const fig = el("div", "char" + (speaking ? " speaker" : " dim"));
+    fig.dataset.who = who;
+    fig.dataset.expr = expr;
+    if (freshLine && speaking) fig.classList.add("just-spoke");
+    if (freshLine && (expr === "surprised" || expr === "panic")) fig.classList.add("emote-hot");
     fig.style.setProperty("--grow", String((meta.w / meta.h) * meta.scale));
     const img = document.createElement("img");
-    img.src = meta.src;
+    img.src = expressionSrc(who, expr);
     img.alt = meta.alt;
     img.width = meta.w;
     img.height = meta.h;
@@ -1040,5 +1139,6 @@ function bind() {
   });
 }
 
+preloadExpressions();
 bind();
 render();
