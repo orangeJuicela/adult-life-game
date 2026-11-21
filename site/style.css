@@ -64,13 +64,23 @@ button:focus-visible {
   }
 }
 
+:root {
+  /* Feet stay on this line. 113.4% height, bottom-aligned, puts the photo's
+     wooden floor (about 70% down the image) on this same line. */
+  --floor: 66%;
+}
+
 .bg {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  left: 50%;
+  bottom: 0;
+  width: auto;
+  min-width: 100%;
+  height: 113.4%;
+  max-width: none;
+  transform: translateX(-50%);
   object-fit: cover;
-  object-position: center center;
+  object-position: center bottom;
   z-index: 0;
   pointer-events: none;
 }
@@ -226,8 +236,8 @@ button:focus-visible {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: var(--feet, 26%);
-  height: min(420px, calc(100% - var(--feet, 26%) - 64px));
+  bottom: calc(100% - var(--floor));
+  height: calc(var(--floor) - 72px);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -267,8 +277,8 @@ button:focus-visible {
 }
 
 #phone[data-crowded="1"] .char img {
-  height: min(calc(100% * var(--scale, 1)), calc(250px * var(--scale, 1)));
-  max-height: min(calc(100% * var(--scale, 1)), calc(250px * var(--scale, 1)));
+  height: min(calc(100% * var(--scale, 1)), calc(260px * var(--scale, 1)));
+  max-height: min(calc(100% * var(--scale, 1)), calc(260px * var(--scale, 1)));
 }
 
 .char.dim img {
@@ -323,7 +333,7 @@ button:focus-visible {
   z-index: 2;
   flex: 0 1 auto;
   min-height: 0;
-  max-height: 62%;
+  max-height: calc(100% - var(--floor) - 6px);
   margin-top: auto;
   padding: 6px 0 calc(4px + env(safe-area-inset-bottom));
   display: flex;
@@ -353,9 +363,19 @@ button:focus-visible {
 
 .hud[data-view="choice"] .dialogue,
 .hud[data-view="sort"] .dialogue,
-.hud[data-view="card"] .dialogue {
+.hud[data-view="card"] .dialogue,
+.hud[data-view="reveal"] .dialogue {
   min-height: 0;
-  padding: 18px 14px 8px;
+  padding: 16px 14px 6px;
+}
+
+#phone[data-crowded="1"] .house {
+  padding: 4px 6px 6px;
+}
+
+#phone[data-crowded="1"] .house ul {
+  font-size: 12px;
+  line-height: 1.25;
 }
 
 .name {

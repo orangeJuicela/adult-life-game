@@ -535,21 +535,6 @@ function renderCast() {
   stage.replaceChildren(inner);
 }
 
-function anchorFeet() {
-  const phone = document.getElementById("phone");
-  if (!phone || phone.dataset.view === "select") {
-    if (phone) phone.style.removeProperty("--feet");
-    return;
-  }
-  const hud = document.getElementById("hud");
-  const height = phone.clientHeight;
-  if (!hud || !height) return;
-  const hudTop = hud.getBoundingClientRect().top - phone.getBoundingClientRect().top;
-  const floorY = height * 0.74;
-  const aboveCards = Math.max(height * 0.4, Math.min(floorY, hudTop - 12));
-  phone.style.setProperty("--feet", Math.round(height - aboveCards) + "px");
-}
-
 function makeDialogue(speakerKey) {
   const meta = CAST[speakerKey] || CAST.system;
   const box = el("div", "dialogue");
@@ -1047,7 +1032,6 @@ function finishLine(token) {
   if (token != null && token !== gen) return;
   const textNode = document.getElementById("dialogue-text");
   if (textNode) fillRich(textNode, speechText());
-  anchorFeet();
   lineReady = true;
   document.getElementById("phone").dataset.ready = "1";
   const hint = document.getElementById("tap-hint");
@@ -1117,7 +1101,6 @@ function render() {
   else renderCast();
   buildPanel();
   if (view === "sort" || (view === "reveal" && current().type === "sort")) fillSort();
-  anchorFeet();
   if (view === "end") {
     lineReady = true;
     phone.dataset.ready = "1";
@@ -1459,7 +1442,6 @@ function onPanelClick(event) {
 }
 
 function bind() {
-  window.addEventListener("resize", anchorFeet);
   document.getElementById("phone").addEventListener("pointerdown", function (event) {
     AdultAudio.unlock();
     if (event.target.closest("#menu-sound")) return;
