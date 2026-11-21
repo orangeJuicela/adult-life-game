@@ -616,6 +616,9 @@ button:focus-visible {
 .bin[data-bin="main"] { background: #f4fbf6; }
 .bin[data-bin="annex"] { background: #fff8ee; }
 .bin[data-bin="public"] { background: #f4f8fd; }
+.bin[data-bin="apt"] { background: #f4fbf6; }
+.bin[data-bin="mid"] { background: #fff8ee; }
+.bin[data-bin="tower"] { background: #f4f8fd; }
 
 .bin-head { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
 .bin-title { font-size: 15px; font-weight: 900; }
@@ -883,6 +886,27 @@ button:focus-visible {
 .art-pitch { background: linear-gradient(160deg, #e7f5ff, #d0ebff); }
 .art-price { background: linear-gradient(160deg, #fff4d6, #ffe8a3); }
 .art-lock { background: linear-gradient(160deg, #f1ece6, #e4ddd4); }
+.art-types { background: linear-gradient(180deg, #d7eefc, #e7f6ea); }
+
+.skyline {
+  position: absolute;
+  left: 18px;
+  bottom: 14px;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.bldg {
+  display: block;
+  background: #7eafd4;
+  border-radius: 3px 3px 0 0;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+}
+
+.b1 { width: 22px; height: 34px; }
+.b2 { width: 26px; height: 56px; background: #6aa3cf; }
+.b3 { width: 34px; height: 86px; background: #4f8fbe; }
 
 .wall-art img {
   position: absolute;

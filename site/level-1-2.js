@@ -7,8 +7,9 @@ var LEVEL_12 = {
   sub: "",
   endKicker: "第 1-2 關完成",
   endTitle: "每坪到底多少錢？",
-  soon: "1-3 房屋類型與屋齡 即將推出",
-  next: null,
+  soon: "下一關：1-3 房屋類型與屋齡",
+  next: "1-3",
+  nextLabel: "前往 1-3 房屋類型與屋齡",
   cards: {
     d1: {
       icon: "💰",
@@ -272,7 +273,7 @@ var LEVEL_12 = {
       text: "第三，用 **實價登錄** 比價。另外記得，公設會帶來管理費。" },
     { id: "tease", scene: 7, type: "say", speaker: "owl", cast: ["puppy", "owl"],
       expr: { owl: "smile", puppy: "thinking" },
-      text: "1-3 房屋類型與屋齡，即將推出。" },
+      text: "下一關，我們來看**房屋類型**和**屋齡**。公寓、華廈、電梯大樓，差在哪。" },
     { id: "end", scene: 7, type: "end", speaker: "owl", cast: ["puppy", "owl"],
       expr: { owl: "praise", puppy: "happy" } }
   ]

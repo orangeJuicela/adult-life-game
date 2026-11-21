@@ -261,7 +261,8 @@ const LEVELS = {
     bins: BINS,
     script: SCRIPT
   },
-  "1-2": LEVEL_12
+  "1-2": LEVEL_12,
+  "1-3": LEVEL_13
 };
 
 const CHAPTERS = [
@@ -270,7 +271,7 @@ const CHAPTERS = [
     levels: [
       { id: "1-1", motif: "pitch" },
       { id: "1-2", motif: "price" },
-      { id: "1-3", locked: true, motif: "lock", title: "1-3 房屋類型與屋齡", note: "即將推出" }
+      { id: "1-3", motif: "types" }
     ]
   }
 ];
@@ -826,6 +827,10 @@ function makeArt(motif) {
     art.append(el("div", "plan"), wallImg("assets/expr/fox_smug.webp", ""));
   } else if (motif === "price") {
     art.append(el("span", "coin", "坪"), el("span", "coin coin-b", "萬"), wallImg("assets/expr/owl_smile.webp", ""));
+  } else if (motif === "types") {
+    const row = el("div", "skyline");
+    row.append(el("i", "bldg b1"), el("i", "bldg b2"), el("i", "bldg b3"));
+    art.append(row, wallImg("assets/expr/owl_serious.webp", ""));
   } else {
     const house = el("div", "sil");
     house.append(el("i", "roof"), el("i", "base"));
