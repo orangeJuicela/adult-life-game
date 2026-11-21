@@ -7,8 +7,10 @@ var LEVEL_13 = {
   sub: "",
   endKicker: "第 1-3 關完成",
   endTitle: "房屋類型與屋齡",
-  soon: "第1章的三關都走到這裡了。",
-  next: null,
+  soon: "下一關：1-4 房貸怎麼算？",
+  next: "1-4",
+  nextLabel: "前往 1-4 房貸怎麼算？",
+  sortNoun: "描述",
   sortDone: "三種類型都放對了。這是市場上的習慣分法，不是法律上的正式名稱。",
   cards: {
     e1: {
@@ -211,6 +213,9 @@ var LEVEL_13 = {
     { id: "sum3", scene: 6, type: "say", speaker: "owl", cast: ["puppy", "owl"],
       expr: { owl: "praise", puppy: "happy" },
       text: "第三，!!等都更!!、!!頂樓加蓋!!、!!海砂屋不用查!!都是陷阱。比實價登錄要先拆車位。" },
+    { id: "tease", scene: 6, type: "say", speaker: "owl", cast: ["puppy", "owl"],
+      expr: { owl: "smile", puppy: "thinking" },
+      text: "下一關，我們來算**房貸**：頭期款、月付，還有每個月扛得住多少。" },
     { id: "end", scene: 6, type: "end", speaker: "owl", cast: ["puppy", "owl"],
       expr: { owl: "praise", puppy: "happy" } }
   ]

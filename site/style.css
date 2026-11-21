@@ -364,6 +364,7 @@ button:focus-visible {
 .hud[data-view="choice"] .dialogue,
 .hud[data-view="sort"] .dialogue,
 .hud[data-view="card"] .dialogue,
+.hud[data-view="budget"] .dialogue,
 .hud[data-view="reveal"] .dialogue {
   min-height: 0;
   padding: 16px 14px 6px;
@@ -523,6 +524,26 @@ button:focus-visible {
 
 .sheet .choice { margin-top: 8px; }
 .sheet .choice-go { width: 100%; margin: 8px 0 0; }
+
+.budget {
+  padding: 0 12px 4px;
+  text-align: left;
+}
+
+.budget-income,
+.budget-read {
+  margin: 8px 0 0;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.budget input[type="range"] {
+  width: 100%;
+  margin: 10px 0 0;
+  accent-color: #2174c4;
+}
 
 .houses {
   display: grid;
@@ -887,6 +908,9 @@ button:focus-visible {
 .art-price { background: linear-gradient(160deg, #fff4d6, #ffe8a3); }
 .art-lock { background: linear-gradient(160deg, #f1ece6, #e4ddd4); }
 .art-types { background: linear-gradient(180deg, #d7eefc, #e7f6ea); }
+.art-loan { background: linear-gradient(160deg, #fff4d6, #f3e4ff); }
+
+.coin.loan-rate { width: 72px; height: 72px; font-size: 22px; left: 22px; top: 30px; }
 
 .skyline {
   position: absolute;

@@ -241,7 +241,7 @@ let SCRIPT = [
     expr: { owl: "smile", puppy: "happy" } }
 ];
 
-let MAX_XP = SCRIPT.filter((node) => node.type === "choice").length * 20;
+let MAX_XP = scoredCount(SCRIPT) * 20;
 const TITLE_LINE = "這間廣告寫著『30 坪、三房兩廳』。進門之前，我想先搞懂：坪數到底是什麼。";
 
 const LEVELS = {
@@ -262,7 +262,8 @@ const LEVELS = {
     script: SCRIPT
   },
   "1-2": LEVEL_12,
-  "1-3": LEVEL_13
+  "1-3": LEVEL_13,
+  "1-4": LEVEL_14
 };
 
 const CHAPTERS = [
@@ -271,7 +272,8 @@ const CHAPTERS = [
     levels: [
       { id: "1-1", motif: "pitch" },
       { id: "1-2", motif: "price" },
-      { id: "1-3", motif: "types" }
+      { id: "1-3", motif: "types" },
+      { id: "1-4", motif: "loan" }
     ]
   }
 ];
@@ -302,7 +304,8 @@ function fresh() {
     auto: false,
     phase: "line",
     hint: "",
-    skipped: {}
+    skipped: {},
+    budgetValue: null
   };
 }
 
@@ -327,6 +330,7 @@ function load() {
     else if (data.phase === "hint" && typeof data.hint === "string" && data.hint) blank.phase = "hint";
     else blank.phase = "line";
     blank.hint = blank.phase === "hint" ? data.hint : "";
+    blank.budgetValue = Number.isFinite(data.budgetValue) ? data.budgetValue : null;
     if (blank.step < 0 || blank.step >= SCRIPT.length) blank.step = 0;
     if (blank.phase === "reveal") {
       const node = SCRIPT[blank.step];
@@ -357,7 +361,8 @@ function save() {
     auto: S.auto,
     phase: S.phase,
     hint: S.hint,
-    skipped: S.skipped
+    skipped: S.skipped,
+    budgetValue: S.budgetValue
   }));
 }
 
@@ -575,6 +580,75 @@ function makeChoices(node, revealed) {
   return wrap;
 }
 
+function budgetValue(node) {
+  return S.budgetValue == null ? node.start : S.budgetValue;
+}
+
+function budgetReadText(node, value) {
+  const pct = Math.round(value / node.income * 100);
+  return "每月 ==" + formatNT(value) + " 元==，約是薪水的 " + pct + "%。";
+}
+
+function makeBudget(node, revealed) {
+  const target = Math.round(node.income / 3);
+  const value = revealed ? target : budgetValue(node);
+  const wrap = el("div", "budget");
+  wrap.dataset.testid = "budget";
+  const income = el("p", "budget-income", "月收入 " + formatNT(node.income) + " 元（範例）");
+  const read = el("p", "budget-read", "");
+  read.id = "budget-read";
+  fillRich(read, budgetReadText(node, value));
+  const slider = document.createElement("input");
+  slider.type = "range";
+  slider.id = "budget-slider";
+  slider.min = String(node.min);
+  slider.max = String(node.max);
+  slider.step = String(node.step);
+  slider.value = String(value);
+  if (revealed) slider.disabled = true;
+  const go = document.createElement("button");
+  go.type = "button";
+  go.className = "choice choice-mint choice-go";
+  go.dataset.budget = "1";
+  go.appendChild(el("span", "choice-text", "就用這個月付"));
+  if (revealed) go.hidden = true;
+  wrap.append(income, read, slider, go);
+  return wrap;
+}
+
+function onBudgetSlide(value) {
+  const node = current();
+  if (!node || node.type !== "budget" || S.phase !== "line") return;
+  S.budgetValue = value;
+  const read = document.getElementById("budget-read");
+  if (read) fillRich(read, budgetReadText(node, value));
+}
+
+function onBudgetConfirm() {
+  const node = current();
+  if (!node || node.type !== "budget" || S.phase === "hint" || S.phase === "reveal") return;
+  const target = Math.round(node.income / 3);
+  const value = budgetValue(node);
+  S.budgetValue = value;
+  AdultAudio.sfx("option");
+  if (value !== target) {
+    AdultAudio.sfx("wrong");
+    S.phase = "hint";
+    S.hint = value > target
+      ? "這超過薪水的三分之一了。常用的建議是月付抓在三分之一以內。"
+      : "再低也可以，但這一關要先找出三分之一的上限。";
+    save();
+    render();
+    return;
+  }
+  AdultAudio.sfx("correct");
+  const gain = award(node.qid);
+  S.step += 1;
+  save();
+  render();
+  if (gain) popXP(gain);
+}
+
 function makeHouses() {
   const wrap = el("div", "houses");
   wrap.dataset.testid = "houses";
@@ -709,9 +783,13 @@ function buildPanel() {
     status.id = "sort-status";
     dialogue.appendChild(status);
     parts.push(makeSort());
+  } else if (view === "reveal" && node.type === "budget") {
+    parts.push(makeBudget(node, true));
   } else if (view === "choice") {
     if (node.extra === "houses") parts.push(makeHouses());
     parts.push(makeChoices(node));
+  } else if (view === "budget") {
+    parts.push(makeBudget(node, false));
   } else if (view === "card") {
     parts.push(makeCard(node.card), goButton("繼續"));
   } else if (view === "sort") {
@@ -760,10 +838,10 @@ function fillSort() {
       fillRich(status, "全部放對了。");
       status.dataset.tone = "ok";
     } else if (left === ITEMS.length) {
-      fillRich(status, "先點一個空間，再點下面的格子。");
+      fillRich(status, "先點一個" + sortNoun() + "，再點下面的格子。");
       status.dataset.tone = "info";
     } else {
-      fillRich(status, "還有 " + left + " 個空間。");
+      fillRich(status, "還有 " + left + " 個" + sortNoun() + "。");
       status.dataset.tone = "info";
     }
   } else {
@@ -774,13 +852,26 @@ function fillSort() {
   if (next) next.hidden = showingAnswer || placedIds.length !== ITEMS.length;
 }
 
+function scoredCount(script) {
+  return script.filter((node) => node.type === "choice" || node.type === "budget").length;
+}
+
+function formatNT(amount) {
+  return String(Math.round(amount)).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function sortNoun() {
+  const level = levelId && LEVELS[levelId];
+  return (level && level.sortNoun) || "空間";
+}
+
 function levelTitle(level) {
   return [level.shortTitle, level.sub].filter(Boolean).join("");
 }
 
 function levelProgress(level) {
   const saved = peekSave(level.saveKey);
-  const maxXp = level.script.filter((node) => node.type === "choice").length * 20;
+  const maxXp = scoredCount(level.script) * 20;
   const cardMax = Object.keys(level.cards || {}).length;
   const started = !!(saved && saved.started);
   const xp = started ? (saved.xp || 0) : 0;
@@ -831,6 +922,8 @@ function makeArt(motif) {
     const row = el("div", "skyline");
     row.append(el("i", "bldg b1"), el("i", "bldg b2"), el("i", "bldg b3"));
     art.append(row, wallImg("assets/expr/owl_serious.webp", ""));
+  } else if (motif === "loan") {
+    art.append(el("span", "coin loan-rate", "2%"), wallImg("assets/expr/fox_guilty.webp", ""));
   } else {
     const house = el("div", "sil");
     house.append(el("i", "roof"), el("i", "base"));
@@ -995,7 +1088,7 @@ function enterLevel(id) {
   ITEMS = level.items;
   BINS = level.bins;
   SCRIPT = level.script;
-  MAX_XP = SCRIPT.filter((node) => node.type === "choice").length * 20;
+  MAX_XP = scoredCount(SCRIPT) * 20;
   const saved = load();
   selected = null;
   sortMsg = "";
@@ -1100,7 +1193,7 @@ function render() {
   const nodeNow = S.started ? current() : null;
   phone.dataset.view = view;
   phone.dataset.node = nodeNow ? nodeNow.id : "title";
-  phone.dataset.crowded = nodeNow && (nodeNow.houses || nodeNow.type === "choice" || nodeNow.type === "sort") ? "1" : "0";
+  phone.dataset.crowded = nodeNow && (nodeNow.houses || nodeNow.type === "choice" || nodeNow.type === "sort" || nodeNow.type === "budget") ? "1" : "0";
   renderChrome();
   if (view === "select") document.getElementById("stage").replaceChildren();
   else renderCast();
@@ -1135,7 +1228,7 @@ function advance(fromUser) {
     return;
   }
   const node = current();
-  if (!node || node.type === "choice" || node.type === "end") return;
+  if (!node || node.type === "choice" || node.type === "budget" || node.type === "end") return;
   if (node.type === "sort" && S.placed.length < ITEMS.length) return;
   if (fromUser) AdultAudio.sfx("tap");
   if (S.step < SCRIPT.length - 1) S.step += 1;
@@ -1190,12 +1283,12 @@ function onSkip() {
     finishLine(gen);
     return;
   }
-  if (view === "choice") return;
+  if (view === "choice" || view === "budget") return;
   advance(true);
 }
 
 function isGate(node) {
-  return !!node && (node.type === "choice" || node.type === "sort" || node.type === "card" || node.type === "end");
+  return !!node && (node.type === "choice" || node.type === "budget" || node.type === "sort" || node.type === "card" || node.type === "end");
 }
 
 function skipSequence() {
@@ -1207,7 +1300,7 @@ function skipSequence() {
     return;
   }
   const node = current();
-  if (S.phase === "hint" || (node && (node.type === "choice" || node.type === "sort"))) {
+  if (S.phase === "hint" || (node && (node.type === "choice" || node.type === "budget" || node.type === "sort"))) {
     showReveal();
     return;
   }
@@ -1294,7 +1387,7 @@ function onPickItem(id) {
 function onBin(binId) {
   if (S.phase === "reveal") return;
   if (!selected) {
-    sortMsg = "先點上面的一個空間喔。";
+    sortMsg = "先點上面的一個" + sortNoun() + "喔。";
     sortTone = "info";
     fillSort();
     return;
@@ -1408,6 +1501,10 @@ function onPanelClick(event) {
     enterLevel(levelBtn.dataset.level);
     return;
   }
+  if (event.target.closest("[data-budget]")) {
+    onBudgetConfirm();
+    return;
+  }
   const choice = event.target.closest("[data-choice]");
   if (choice) {
     onChoice(Number(choice.dataset.choice), choice);
@@ -1453,6 +1550,10 @@ function bind() {
     AdultAudio.sync(viewName());
   }, true);
   document.getElementById("panel").addEventListener("click", onPanelClick);
+  document.getElementById("panel").addEventListener("input", (event) => {
+    if (event.target.id !== "budget-slider") return;
+    onBudgetSlide(Number(event.target.value));
+  });
   document.getElementById("menu-sound").addEventListener("click", function () {
     AdultAudio.toggle();
   });
